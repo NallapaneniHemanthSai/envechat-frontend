@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Client } from '@stomp/stompjs'
@@ -34,22 +33,34 @@ export default function Chat() {
     if (!token) return
 
     fetch(`${API_BASE}/api/rooms`, {
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     })
       .then(r => r.json())
       .then(data => {
         setRooms(data)
-        if (data.length > 0) setActiveRoom(data[0])
+
+        if (data.length > 0) {
+          setActiveRoom(data[0])
+        }
       })
-      .catch(err => console.error('Failed to load rooms:', err))
+      .catch(err =>
+        console.error('Failed to load rooms:', err)
+      )
   }, [token])
 
   useEffect(() => {
     if (!token) return
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(`${API_BASE}/ws`),
-      connectHeaders: { Authorization: `Bearer ${token}` },
+      webSocketFactory: () =>
+        new SockJS(`${API_BASE}/ws`),
+
+      connectHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
+
       reconnectDelay: 3000,
 
       onConnect: () => {
@@ -57,7 +68,9 @@ export default function Chat() {
         stompClientRef.current = client
       },
 
-      onDisconnect: () => setConnected(false),
+      onDisconnect: () => {
+        setConnected(false)
+      },
 
       onStompError: frame => {
         console.error('STOMP error', frame)
@@ -66,36 +79,52 @@ export default function Chat() {
 
     client.activate()
 
-    return () => client.deactivate()
+    return () => {
+      client.deactivate()
+    }
   }, [token])
 
   useEffect(() => {
-    if (!connected || !activeRoom || !stompClientRef.current) return
+    if (
+      !connected ||
+      !activeRoom ||
+      !stompClientRef.current
+    ) {
+      return
+    }
 
     if (subscriptionRef.current) {
       subscriptionRef.current.unsubscribe()
     }
 
-    fetch(`${API_BASE}/api/chat/${activeRoom.id}/history`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(r => r.json())
-      .then(setMessages)
-      .catch(err => console.error('Failed to load history:', err))
-
-    subscriptionRef.current = stompClientRef.current.subscribe(
-      `/topic/room/${activeRoom.id}`,
-      frame => {
-        const msg = JSON.parse(frame.body)
-
-        if (msg.type === 'TYPING') {
-          handleTypingIndicator(msg)
-          return
-        }
-
-        setMessages(prev => [...prev, msg])
+    fetch(
+      `${API_BASE}/api/chat/${activeRoom.id}/history`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
     )
+      .then(r => r.json())
+      .then(setMessages)
+      .catch(err =>
+        console.error('Failed to load history:', err)
+      )
+
+    subscriptionRef.current =
+      stompClientRef.current.subscribe(
+        `/topic/room/${activeRoom.id}`,
+        frame => {
+          const msg = JSON.parse(frame.body)
+
+          if (msg.type === 'TYPING') {
+            handleTypingIndicator(msg)
+            return
+          }
+
+          setMessages(prev => [...prev, msg])
+        }
+      )
 
     stompClientRef.current.publish({
       destination: `/app/chat/${activeRoom.id}/join`,
@@ -130,7 +159,9 @@ export default function Chat() {
 
       typingTimeoutRef.current = setTimeout(() => {
         setTypingUsers(prev =>
-          prev.filter(u => u !== msg.senderUsername)
+          prev.filter(
+            u => u !== msg.senderUsername
+          )
         )
       }, 2000)
     },
@@ -138,7 +169,9 @@ export default function Chat() {
   )
 
   const sendTypingEvent = useCallback(() => {
-    if (!stompClientRef.current || !activeRoom) return
+    if (!stompClientRef.current || !activeRoom) {
+      return
+    }
 
     stompClientRef.current.publish({
       destination: `/app/chat/${activeRoom.id}`,
@@ -152,7 +185,11 @@ export default function Chat() {
   const sendMessage = useCallback(() => {
     const text = inputText.trim()
 
-    if (!text || !stompClientRef.current || !activeRoom) {
+    if (
+      !text ||
+      !stompClientRef.current ||
+      !activeRoom
+    ) {
       return
     }
 
@@ -185,17 +222,23 @@ export default function Chat() {
     if (!name) return
 
     try {
-      const res = await fetch(`${API_BASE}/api/rooms`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name }),
-      })
+      const res = await fetch(
+        `${API_BASE}/api/rooms`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ name }),
+        }
+      )
 
       if (!res.ok) {
-        console.error('Create room failed:', await res.text())
+        console.error(
+          'Create room failed:',
+          await res.text()
+        )
         return
       }
 
@@ -238,7 +281,9 @@ export default function Chat() {
     let h = 0
 
     for (const c of name || '') {
-      h = (h * 31 + c.charCodeAt(0)) % avatarColors.length
+      h =
+        (h * 31 + c.charCodeAt(0)) %
+        avatarColors.length
     }
 
     return avatarColors[h]
@@ -274,7 +319,6 @@ export default function Chat() {
       fontSize: 16,
       fontWeight: 700,
       color: '#38bdf8',
-      letterSpacing: '0.05em',
     },
 
     userPill: {
@@ -352,7 +396,6 @@ export default function Chat() {
       color: '#64748b',
       fontSize: 12,
       cursor: 'pointer',
-      transition: 'all 0.2s ease',
     },
 
     sidebarFooter: {
@@ -369,7 +412,6 @@ export default function Chat() {
       color: '#94a3b8',
       fontSize: 12,
       cursor: 'pointer',
-      transition: 'all 0.2s ease',
     },
 
     main: {
@@ -448,7 +490,6 @@ export default function Chat() {
       resize: 'none',
       outline: 'none',
       minHeight: 52,
-      maxHeight: 140,
     },
 
     sendBtn: {
@@ -463,7 +504,6 @@ export default function Chat() {
       cursor: 'pointer',
       color: '#fff',
       flexShrink: 0,
-      transition: 'all 0.2s ease',
     },
 
     inputHint: {
@@ -491,22 +531,12 @@ export default function Chat() {
         <div style={s.sectionLabel}>Rooms</div>
 
         <div style={s.roomsList}>
-          {rooms.length === 0 && (
-            <div
-              style={{
-                fontSize: 12,
-                color: '#475569',
-                padding: '8px 10px',
-              }}
-            >
-              No rooms yet — create one!
-            </div>
-          )}
-
           {rooms.map(room => (
             <div
               key={room.id}
-              style={s.roomItem(activeRoom?.id === room.id)}
+              style={s.roomItem(
+                activeRoom?.id === room.id
+              )}
               onClick={() => setActiveRoom(room)}
             >
               <span
@@ -536,7 +566,10 @@ export default function Chat() {
         </button>
 
         <div style={s.sidebarFooter}>
-          <button style={s.logoutBtn} onClick={logout}>
+          <button
+            style={s.logoutBtn}
+            onClick={logout}
+          >
             Sign out
           </button>
         </div>
@@ -547,7 +580,7 @@ export default function Chat() {
           <span style={s.roomTitle}>
             {activeRoom
               ? `# ${activeRoom.name}`
-              : 'Select a room to start chatting'}
+              : 'Select a room'}
           </span>
 
           <span
@@ -559,7 +592,9 @@ export default function Chat() {
             }}
           >
             <span style={s.connDot(connected)} />
-            {connected ? 'Connected' : 'Connecting...'}
+            {connected
+              ? 'Connected'
+              : 'Connecting...'}
           </span>
         </div>
 
@@ -571,34 +606,13 @@ export default function Chat() {
               margin: '0 auto',
             }}
           >
-            {!activeRoom && (
-              <div
-                style={{
-                  margin: 'auto',
-                  textAlign: 'center',
-                  color: '#475569',
-                  fontSize: 14,
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 32,
-                    marginBottom: 8,
-                  }}
-                >
-                  💬
-                </div>
-
-                <div>
-                  Select or create a room to start chatting
-                </div>
-              </div>
-            )}
-
             {messages.map((msg, i) => {
               if (msg.type === 'JOIN') {
                 return (
-                  <div key={i} style={s.systemMsg}>
+                  <div
+                    key={i}
+                    style={s.systemMsg}
+                  >
                     {msg.senderUsername} joined
                   </div>
                 )
@@ -606,23 +620,33 @@ export default function Chat() {
 
               if (msg.type === 'LEAVE') {
                 return (
-                  <div key={i} style={s.systemMsg}>
+                  <div
+                    key={i}
+                    style={s.systemMsg}
+                  >
                     {msg.senderUsername} left
                   </div>
                 )
               }
 
-              const own = msg.senderUsername === username
+              const own =
+                msg.senderUsername === username
 
               return (
                 <MessageBubble
-                  key={`${msg.senderUsername}-${msg.sentAt || i}`}
+                  key={i}
                   own={own}
                   sender={msg.senderUsername}
                   content={msg.content}
-                  timestamp={formatTime(msg.sentAt)}
-                  initials={getInitials(msg.senderUsername)}
-                  avatarStyle={s.avatar(msg.senderUsername)}
+                  timestamp={formatTime(
+                    msg.sentAt
+                  )}
+                  initials={getInitials(
+                    msg.senderUsername
+                  )}
+                  avatarStyle={s.avatar(
+                    msg.senderUsername
+                  )}
                 />
               )
             })}
@@ -640,7 +664,7 @@ export default function Chat() {
                 {typingUsers.length === 1
                   ? 'is'
                   : 'are'}{' '}
-                typing…
+                typing...
               </div>
             )}
 
@@ -658,46 +682,139 @@ export default function Chat() {
                 sendTypingEvent()
               }}
               onKeyDown={handleKeyDown}
-              placeholder={
-                activeRoom
-                  ? `Message #${activeRoom.name}…`
-                  : 'Select a room first'
-              }
-              disabled={!activeRoom || !connected}
-              rows={1}
+              placeholder="Type message..."
+              disabled={!connected}
             />
 
             <button
               style={s.sendBtn}
               onClick={sendMessage}
-              disabled={!activeRoom || !connected}
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <line
-                  x1="22"
-                  y1="2"
-                  x2="11"
-                  y2="13"
-                />
-
-                <polygon points="22 2 15 22 11 13 2 9 22 2" />
-              </svg>
+              ➤
             </button>
           </div>
 
           <div style={s.inputHint}>
-            Enter to send · Shift+Enter for new line
+            Enter to send · Shift+Enter for new
+            line
           </div>
         </div>
       </div>
+
+      {showModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.65)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 999,
+            backdropFilter: 'blur(6px)',
+          }}
+        >
+          <div
+            style={{
+              width: '90%',
+              maxWidth: 400,
+              background: '#111827',
+              border: '1px solid #334155',
+              borderRadius: 24,
+              padding: 28,
+              boxShadow:
+                '0 20px 60px rgba(0,0,0,0.5)',
+            }}
+          >
+            <h2
+              style={{
+                color: '#f8fafc',
+                fontSize: 22,
+                marginBottom: 8,
+                fontWeight: 700,
+              }}
+            >
+              Create Room
+            </h2>
+
+            <p
+              style={{
+                color: '#64748b',
+                fontSize: 13,
+                marginBottom: 20,
+              }}
+            >
+              Start a new realtime conversation
+              room.
+            </p>
+
+            <input
+              value={newRoomName}
+              onChange={e =>
+                setNewRoomName(e.target.value)
+              }
+              placeholder="room name"
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  createRoom()
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                background: '#0f172a',
+                border: '1px solid #334155',
+                borderRadius: 14,
+                color: '#f8fafc',
+                fontSize: 14,
+                outline: 'none',
+                marginBottom: 22,
+                boxSizing: 'border-box',
+              }}
+            />
+
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 12,
+              }}
+            >
+              <button
+                onClick={() =>
+                  setShowModal(false)
+                }
+                style={{
+                  padding: '12px 16px',
+                  background: 'transparent',
+                  border: '1px solid #334155',
+                  borderRadius: 12,
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={createRoom}
+                style={{
+                  padding: '12px 18px',
+                  background:
+                    'linear-gradient(135deg,#0ea5e9,#0284c7)',
+                  border: 'none',
+                  borderRadius: 12,
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                Create Room
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-
