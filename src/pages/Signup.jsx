@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { signup } from '../api'
+import { signup } from '../services/api'
 import { useNavigate, Link } from 'react-router-dom'
 
 export default function Signup() {
