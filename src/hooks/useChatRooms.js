@@ -5,7 +5,7 @@ const API_BASE = 'https://envechat.onrender.com'
 let cachedRooms = []
 let alreadyFetched = false
 
-export default function useChatRooms(token) {
+export function useChatRooms(token) {
   const [rooms, setRooms] = useState(cachedRooms)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -15,7 +15,6 @@ export default function useChatRooms(token) {
   useEffect(() => {
     if (!token) return
 
-    // STOP duplicate fetching
     if (alreadyFetched || fetchingRef.current) {
       return
     }
@@ -46,8 +45,6 @@ export default function useChatRooms(token) {
       } catch (err) {
         console.error('Rooms fetch failed:', err)
         setError(err.message)
-
-        // allow retry later
         alreadyFetched = false
 
       } finally {
