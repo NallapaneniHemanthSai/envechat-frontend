@@ -13,142 +13,181 @@ function ColdStartBanner({ elapsed, onDismiss }) {
   const m = Math.floor(remaining / 60)
   const sec = remaining % 60
   return (
-    <div style={banner.wrap}>
-      <div style={banner.left}>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2" style={{flexShrink:0}}>
+    <div style={ban.wrap}>
+      <div style={ban.left}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2" style={{flexShrink:0}}>
           <path d="M22 12h-4l-3 9L9 3l-3 9H2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
-        <span style={banner.text}>
-          Server cold-starting…&nbsp;
+        <span style={ban.text}>
+          Server cold-starting —&nbsp;
           <strong style={{color:'#93c5fd'}}>
-            {elapsed >= TOTAL ? 'should be ready now!' : `~${m}:${String(sec).padStart(2,'0')} remaining`}
+            {elapsed >= TOTAL ? 'should be ready now, try reconnecting!' : `~${m}:${String(sec).padStart(2,'0')} remaining`}
           </strong>
+          <span style={{color:'#475569'}}>&nbsp;· Free-tier Render wakeup</span>
         </span>
       </div>
-      <div style={banner.right}>
-        <div style={banner.track}><div style={{...banner.fill, width:`${pct}%`}} /></div>
-        <button style={banner.close} onClick={onDismiss}>✕</button>
+      <div style={ban.right}>
+        <div style={ban.track}><div style={{...ban.fill, width:`${pct}%`}} /></div>
+        <button style={ban.close} onClick={onDismiss} title="Dismiss">✕</button>
       </div>
     </div>
   )
 }
 
 /* ─── Helpers ───────────────────────────────────────────────── */
-const AVATAR_GRADIENTS = [
+const GRADS = [
   'linear-gradient(135deg,#6366f1,#8b5cf6)',
   'linear-gradient(135deg,#0ea5e9,#06b6d4)',
   'linear-gradient(135deg,#ec4899,#f43f5e)',
   'linear-gradient(135deg,#22c55e,#16a34a)',
   'linear-gradient(135deg,#f59e0b,#d97706)',
   'linear-gradient(135deg,#e879f9,#a855f7)',
+  'linear-gradient(135deg,#14b8a6,#0d9488)',
 ]
 const getGrad = name => {
-  let h = 0; for (const c of (name||'')) h=(h*31+c.charCodeAt(0))%AVATAR_GRADIENTS.length
-  return AVATAR_GRADIENTS[h]
+  let h = 0
+  for (const c of (name || '')) h = (h * 31 + c.charCodeAt(0)) % GRADS.length
+  return GRADS[h]
 }
-const initials = name => (name||'??').slice(0,2).toUpperCase()
-const fmtTime = ts => ts ? new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : ''
+// Strip @domain if it looks like an email — show only the username part
+const displayName = name => {
+  if (!name) return '??'
+  return name.includes('@') ? name.split('@')[0] : name
+}
+const initials = name => displayName(name).slice(0, 2).toUpperCase()
+const fmtTime  = ts => ts ? new Date(ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : ''
 
 /* ─── Avatar ────────────────────────────────────────────────── */
-function Avatar({ name, size=32, radius=8 }) {
+function Avatar({ name, size = 34, radius = 9 }) {
   return (
-    <div style={{ width:size, height:size, borderRadius:radius, background:getGrad(name), display:'flex', alignItems:'center', justifyContent:'center', fontSize:size*0.34, fontWeight:600, color:'#fff', flexShrink:0, letterSpacing:'-0.02em' }}>
+    <div style={{
+      width: size, height: size, borderRadius: radius,
+      background: getGrad(name),
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: size * 0.33, fontWeight: 700, color: '#fff',
+      flexShrink: 0, letterSpacing: '-0.02em', userSelect: 'none',
+    }}>
       {initials(name)}
     </div>
   )
 }
 
-/* ─── Message Bubble ────────────────────────────────────────── */
-function Message({ msg, own }) {
+/* ─── Message Group (consecutive msgs from same sender) ─────── */
+function MessageGroup({ msgs, own }) {
   return (
-    <div style={{ display:'flex', alignItems:'flex-start', gap:10, padding:'3px 0', flexDirection: own ? 'row-reverse' : 'row' }}>
-      <Avatar name={msg.senderUsername} size={32} />
-      <div style={{ maxWidth:'70%' }}>
-        <div style={{ fontSize:11, color:'#475569', marginBottom:4, display:'flex', alignItems:'center', gap:6, flexDirection: own ? 'row-reverse' : 'row' }}>
-          <span style={{ fontWeight:500, color: own ? '#60a5fa' : '#94a3b8' }}>
-            {own ? 'you' : msg.senderUsername}
-          </span>
-          <span>{fmtTime(msg.sentAt)}</span>
-        </div>
+    <div style={{
+      display: 'flex', gap: 10, padding: '4px 0',
+      flexDirection: own ? 'row-reverse' : 'row',
+      alignItems: 'flex-end',
+    }}>
+      <div style={{ flexShrink:0, width:34 }}>
+        <Avatar name={msgs[0].senderUsername} size={34} />
+      </div>
+      <div style={{
+        display: 'flex', flexDirection: 'column', gap: 3,
+        maxWidth: '62%', alignItems: own ? 'flex-end' : 'flex-start',
+      }}>
         <div style={{
-          background: own ? 'rgba(59,130,246,0.12)' : 'rgba(30,41,59,0.8)',
-          border: own ? '1px solid rgba(59,130,246,0.25)' : '1px solid rgba(148,163,184,0.1)',
-          padding:'9px 13px', borderRadius: own ? '12px 4px 12px 12px' : '4px 12px 12px 12px',
-          fontSize:13.5, lineHeight:1.6, color:'#e2e8f0', wordBreak:'break-word'
+          fontSize: 11, color: '#475569', display: 'flex',
+          alignItems: 'center', gap: 6,
+          flexDirection: own ? 'row-reverse' : 'row', marginBottom: 2,
         }}>
-          {msg.content}
+          <span style={{ fontWeight: 600, color: own ? '#60a5fa' : '#94a3b8' }}>
+            {own ? 'you' : displayName(msgs[0].senderUsername)}
+          </span>
+          <span>{fmtTime(msgs[0].sentAt)}</span>
         </div>
+        {msgs.map((msg, i) => {
+          const first = i === 0
+          const last  = i === msgs.length - 1
+          return (
+            <div key={i} style={{
+              background: own ? 'rgba(59,130,246,0.14)' : 'rgba(255,255,255,0.04)',
+              border: own ? '1px solid rgba(59,130,246,0.28)' : '1px solid rgba(255,255,255,0.07)',
+              padding: '9px 14px',
+              borderRadius: own
+                ? (first ? '14px 4px 14px 14px' : last ? '14px 14px 4px 14px' : '14px 8px 14px 14px')
+                : (first ? '4px 14px 14px 14px' : last ? '14px 14px 14px 4px' : '8px 14px 14px 8px'),
+              fontSize: 13.5, lineHeight: 1.65, color: '#e2e8f0', wordBreak: 'break-word',
+            }}>
+              {msg.content}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
 }
 
-/* ─── Main Chat ─────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   MAIN CHAT
+═══════════════════════════════════════════════════════════════ */
 export default function Chat() {
   const navigate = useNavigate()
   const username = localStorage.getItem('username')
   const token    = localStorage.getItem('token')
 
-  const [rooms, setRooms]           = useState([])
-  const [activeRoom, setActiveRoom] = useState(null)
-  const [messages, setMessages]     = useState([])
-  const [inputText, setInputText]   = useState('')
+  const [rooms, setRooms]             = useState([])
+  const [activeRoom, setActiveRoom]   = useState(null)
+  const [messages, setMessages]       = useState([])
+  const [inputText, setInputText]     = useState('')
   const [newRoomName, setNewRoomName] = useState('')
-  const [showModal, setShowModal]   = useState(false)
-  const [connected, setConnected]   = useState(false)
+  const [showModal, setShowModal]     = useState(false)
+  const [connected, setConnected]     = useState(false)
   const [typingUsers, setTypingUsers] = useState([])
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
-  // Cold-start
-  const [showBanner, setShowBanner]   = useState(false)
+  const [showBanner, setShowBanner]       = useState(false)
   const [bannerElapsed, setBannerElapsed] = useState(0)
-  const bannerTimerRef = useRef(null)
+  const bannerTimerRef  = useRef(null)
+  const coldShownRef    = useRef(false)
+  const stompClientRef  = useRef(null)
+  const subscriptionRef = useRef(null)
+  const messagesEndRef  = useRef(null)
+  const typingTimeouts  = useRef({})
 
-  const stompClientRef   = useRef(null)
-  const subscriptionRef  = useRef(null)
-  const messagesEndRef   = useRef(null)
-  const typingTimeoutRef = useRef({})
-
+  // Auth guard
   useEffect(() => { if (!token) navigate('/login') }, [token, navigate])
 
-  // Start cold-start timer when not connected after 5s
+  // Cold-start banner — show if no WS in 5s
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (!connected) {
+    const t = setTimeout(() => {
+      if (!connected && !coldShownRef.current) {
+        coldShownRef.current = true
         setShowBanner(true)
         bannerTimerRef.current = setInterval(() => setBannerElapsed(e => e + 1), 1000)
       }
     }, 5000)
-    return () => clearTimeout(timeout)
-  }, [connected])
+    return () => clearTimeout(t)
+  }, []) // eslint-disable-line
 
   useEffect(() => {
     if (connected && bannerTimerRef.current) {
       clearInterval(bannerTimerRef.current)
-      setBannerElapsed(0)
       setShowBanner(false)
+      setBannerElapsed(0)
     }
   }, [connected])
 
   // Load rooms
   useEffect(() => {
     if (!token) return
-    fetch(`${API_BASE}/api/rooms`, { headers: { Authorization:`Bearer ${token}` } })
+    fetch(`${API_BASE}/api/rooms`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(data => { setRooms(data); if (data.length > 0) setActiveRoom(data[0]) })
       .catch(console.error)
   }, [token])
 
-  // Connect WebSocket
+  // WebSocket connect
   useEffect(() => {
     if (!token) return
     const client = new Client({
       webSocketFactory: () => new SockJS(`${API_BASE}/ws`),
-      connectHeaders: { Authorization:`Bearer ${token}` },
+      connectHeaders: { Authorization: `Bearer ${token}` },
       reconnectDelay: 4000,
-      onConnect: () => { setConnected(true); stompClientRef.current = client },
-      onDisconnect: () => setConnected(false),
-      onStompError: frame => console.error('STOMP', frame),
+      onConnect:     () => { setConnected(true); stompClientRef.current = client },
+      onDisconnect:  () => setConnected(false),
+      onStompError:  f  => console.error('STOMP', f),
     })
     client.activate()
     return () => client.deactivate()
@@ -158,9 +197,11 @@ export default function Chat() {
   useEffect(() => {
     if (!connected || !activeRoom || !stompClientRef.current) return
     subscriptionRef.current?.unsubscribe()
+    setMessages([])
 
-    fetch(`${API_BASE}/api/chat/${activeRoom.id}/history`, { headers: { Authorization:`Bearer ${token}` } })
-      .then(r => r.json()).then(setMessages).catch(console.error)
+    fetch(`${API_BASE}/api/chat/${activeRoom.id}/history`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(r => r.json()).then(setMessages).catch(console.error)
 
     subscriptionRef.current = stompClientRef.current.subscribe(
       `/topic/room/${activeRoom.id}`,
@@ -172,19 +213,22 @@ export default function Chat() {
     )
     stompClientRef.current.publish({
       destination: `/app/chat/${activeRoom.id}/join`,
-      body: JSON.stringify({ type:'JOIN', senderUsername:username }),
+      body: JSON.stringify({ type: 'JOIN', senderUsername: username }),
     })
     return () => subscriptionRef.current?.unsubscribe()
   }, [connected, activeRoom]) // eslint-disable-line
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior:'smooth' }) }, [messages])
+  // Auto-scroll
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   const handleTyping = useCallback(msg => {
     if (msg.senderUsername === username) return
     const u = msg.senderUsername
     setTypingUsers(prev => [...new Set([...prev, u])])
-    clearTimeout(typingTimeoutRef.current[u])
-    typingTimeoutRef.current[u] = setTimeout(() => {
+    clearTimeout(typingTimeouts.current[u])
+    typingTimeouts.current[u] = setTimeout(() => {
       setTypingUsers(prev => prev.filter(x => x !== u))
     }, 2500)
   }, [username])
@@ -193,7 +237,7 @@ export default function Chat() {
     if (!stompClientRef.current || !activeRoom) return
     stompClientRef.current.publish({
       destination: `/app/chat/${activeRoom.id}`,
-      body: JSON.stringify({ type:'TYPING', senderUsername:username }),
+      body: JSON.stringify({ type: 'TYPING', senderUsername: username }),
     })
   }, [activeRoom, username])
 
@@ -202,7 +246,7 @@ export default function Chat() {
     if (!text || !stompClientRef.current || !activeRoom) return
     stompClientRef.current.publish({
       destination: `/app/chat/${activeRoom.id}`,
-      body: JSON.stringify({ content:text, type:'CHAT', senderUsername:username, roomId:String(activeRoom.id) }),
+      body: JSON.stringify({ content: text, type: 'CHAT', senderUsername: username, roomId: String(activeRoom.id) }),
     })
     setInputText('')
   }, [inputText, activeRoom, username])
@@ -212,12 +256,12 @@ export default function Chat() {
   }
 
   const createRoom = async () => {
-    const name = newRoomName.trim().toLowerCase().replace(/\s+/g,'-')
+    const name = newRoomName.trim().toLowerCase().replace(/\s+/g, '-')
     if (!name) return
     try {
       const res = await fetch(`${API_BASE}/api/rooms`, {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}` },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ name }),
       })
       if (!res.ok) return
@@ -226,17 +270,35 @@ export default function Chat() {
       setActiveRoom(room)
       setNewRoomName('')
       setShowModal(false)
-    } catch(e) { console.error(e) }
+    } catch (e) { console.error(e) }
   }
 
   const logout = () => { localStorage.clear(); navigate('/login') }
 
+  // Group consecutive messages from same sender
+  const messageGroups = []
+  messages.forEach(msg => {
+    if (msg.type === 'JOIN' || msg.type === 'LEAVE') {
+      messageGroups.push({ type: 'system', msg })
+      return
+    }
+    const last = messageGroups[messageGroups.length - 1]
+    if (last && last.type === 'group' && last.sender === msg.senderUsername) {
+      last.msgs.push(msg)
+    } else {
+      messageGroups.push({ type: 'group', sender: msg.senderUsername, msgs: [msg] })
+    }
+  })
+
+  const canSend = !!activeRoom && connected && !!inputText.trim()
+
   return (
     <>
       <div style={s.shell}>
-        {/* SIDEBAR */}
-        <div style={{ ...s.sidebar, transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)', transition:'transform 0.25s ease' }}>
-          <div style={s.sidebarTop}>
+
+        {/* ── SIDEBAR ── */}
+        <div style={{ ...s.sidebar, marginLeft: sidebarOpen ? 0 : -258, transition: 'margin-left 0.25s ease' }}>
+          <div style={s.sTop}>
             <div style={s.brand}>
               <div style={s.brandIcon}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
@@ -246,108 +308,132 @@ export default function Chat() {
               <span style={s.brandName}>EnveChat</span>
             </div>
             <div style={s.userChip}>
-              <Avatar name={username} size={26} radius={6} />
-              <span style={s.userChipName}>{username}</span>
+              <Avatar name={username} size={28} radius={7} />
+              <div>
+                <div style={s.userChipName}>{displayName(username)}</div>
+                <div style={s.userChipStatus}>
+                  <span style={s.userStatusDot} />
+                  Online
+                </div>
+              </div>
             </div>
           </div>
 
-          <div style={s.sectionLabel}>Channels</div>
+          <div style={s.secLabel}>Channels</div>
 
           <div style={s.roomsList}>
-            {rooms.length === 0 && (
-              <div style={s.emptyRooms}>No channels yet — create one!</div>
-            )}
+            {rooms.length === 0 && <div style={s.noRooms}>No channels yet</div>}
             {rooms.map(room => {
               const active = activeRoom?.id === room.id
               return (
-                <div key={room.id} style={{ ...s.roomItem, ...(active ? s.roomItemActive : {}) }}
+                <div key={room.id} style={{ ...s.roomItem, ...(active ? s.roomActive : {}) }}
                   onClick={() => setActiveRoom(room)}>
-                  <span style={{ ...s.roomHash, color: active ? '#60a5fa' : '#475569' }}>#</span>
-                  <span style={{ ...s.roomName, color: active ? '#f1f5f9' : '#94a3b8' }}>{room.name}</span>
+                  <span style={{ ...s.roomHash, color: active ? '#60a5fa' : '#334155' }}>#</span>
+                  <span style={{ ...s.roomName, color: active ? '#f1f5f9' : '#64748b' }}>{room.name}</span>
+                  {active && <span style={s.activePip} />}
                 </div>
               )
             })}
           </div>
 
           <button style={s.newRoomBtn} onClick={() => setShowModal(true)}>
-            <span style={s.newRoomPlus}>+</span> New Channel
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            New Channel
           </button>
 
-          <div style={s.sidebarFooter}>
-            <div style={s.connStatus}>
-              <span style={{ ...s.connDot, background: connected ? '#22c55e' : '#ef4444',
-                boxShadow: connected ? '0 0 6px #22c55e' : 'none' }} />
+          <div style={s.sFooter}>
+            <div style={s.connRow}>
+              <span style={{
+                ...s.dot,
+                background: connected ? '#22c55e' : '#ef4444',
+                boxShadow: connected ? '0 0 8px #22c55e88' : 'none',
+              }} />
               <span style={s.connLabel}>{connected ? 'Connected' : 'Connecting…'}</span>
             </div>
-            <button style={s.logoutBtn} onClick={logout}>Sign out</button>
+            <button style={s.logoutBtn} onClick={logout}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              Sign out
+            </button>
           </div>
         </div>
 
-        {/* MAIN */}
+        {/* ── MAIN ── */}
         <div style={s.main}>
-          {showBanner && (
-            <ColdStartBanner elapsed={bannerElapsed} onDismiss={() => setShowBanner(false)} />
-          )}
+
+          {showBanner && <ColdStartBanner elapsed={bannerElapsed} onDismiss={() => setShowBanner(false)} />}
 
           {/* Header */}
-          <div style={s.chatHeader}>
-            <div style={s.headerLeft}>
-              <button style={s.sidebarToggle} onClick={() => setSidebarOpen(o => !o)}>
+          <div style={s.header}>
+            <div style={s.headerL}>
+              <button style={s.menuBtn} onClick={() => setSidebarOpen(o => !o)}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                  <line x1="3" y1="12" x2="21" y2="12"/>
+                  <line x1="3" y1="18" x2="21" y2="18"/>
                 </svg>
               </button>
-              {activeRoom ? (
-                <div>
-                  <div style={s.headerRoom}># {activeRoom.name}</div>
-                </div>
-              ) : (
-                <div style={s.headerRoom}>Select a channel</div>
-              )}
+              {activeRoom
+                ? <><span style={s.headerHash}>#</span><span style={s.headerRoom}>{activeRoom.name}</span></>
+                : <span style={s.headerRoom}>Select a channel</span>
+              }
             </div>
-            <div style={s.headerRight}>
-              <div style={s.memberCount}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-                Online
-              </div>
+            <div style={s.headerR}>
+              {connected && (
+                <div style={s.onlinePill}>
+                  <span style={s.onlineDot} />Online
+                </div>
+              )}
             </div>
           </div>
 
           {/* Messages */}
-          <div style={s.messagesArea}>
+          <div style={s.msgs}>
             {!activeRoom && (
-              <div style={s.emptyChat}>
-                <div style={s.emptyChatIcon}>💬</div>
-                <div style={s.emptyChatTitle}>No channel selected</div>
-                <div style={s.emptyChatSub}>Pick a channel from the sidebar or create a new one</div>
+              <div style={s.emptyState}>
+                <div style={s.emptyIconWrap}>
+                  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1e3a5f" strokeWidth="1.5">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                </div>
+                <div style={s.emptyTitle}>No channel selected</div>
+                <div style={s.emptySub}>Pick a channel or create a new one</div>
               </div>
             )}
 
-            {activeRoom && messages.length === 0 && (
-              <div style={s.channelIntro}>
-                <div style={s.channelIntroIcon}>#</div>
-                <div style={s.channelIntroTitle}>Welcome to #{activeRoom.name}</div>
-                <div style={s.channelIntroSub}>This is the beginning of #{activeRoom.name}. Say hello!</div>
+            {activeRoom && messageGroups.length === 0 && (
+              <div style={s.intro}>
+                <div style={s.introHash}>#</div>
+                <div style={s.introTitle}>Welcome to #{activeRoom.name}</div>
+                <div style={s.introSub}>This is the very beginning of <strong>#{activeRoom.name}</strong>. Say hello! 👋</div>
               </div>
             )}
 
-            {messages.map((msg, i) => {
-              if (msg.type === 'JOIN') return <div key={i} style={s.systemMsg}><span style={s.systemDot}/>{msg.senderUsername} joined the channel</div>
-              if (msg.type === 'LEAVE') return <div key={i} style={s.systemMsg}><span style={s.systemDot}/>{msg.senderUsername} left</div>
-              return <Message key={i} msg={msg} own={msg.senderUsername === username} />
+            {messageGroups.map((group, i) => {
+              if (group.type === 'system') {
+                const { msg } = group
+                return (
+                  <div key={i} style={s.sysMsg}>
+                    <div style={s.sysMsgLine} />
+                    <span>{msg.type === 'JOIN' ? `${displayName(msg.senderUsername)} joined` : `${displayName(msg.senderUsername)} left`}</span>
+                    <div style={s.sysMsgLine} />
+                  </div>
+                )
+              }
+              return <MessageGroup key={i} msgs={group.msgs} own={group.sender === username} />
             })}
 
             {typingUsers.length > 0 && (
               <div style={s.typingRow}>
-                <div style={s.typingDots}>
-                  {[0,1,2].map(i => <span key={i} style={{ ...s.typingDot, animationDelay:`${i*0.2}s` }} />)}
+                <div style={s.typingBubble}>
+                  {[0,1,2].map(i => <span key={i} style={{ ...s.typingDot, animationDelay:`${i*0.18}s` }} />)}
                 </div>
-                <span style={s.typingText}>
-                  {typingUsers.join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing…
+                <span style={s.typingTxt}>
+                  {typingUsers.map(displayName).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing…
                 </span>
               </div>
             )}
@@ -356,9 +442,9 @@ export default function Chat() {
 
           {/* Input */}
           <div style={s.inputArea}>
-            <div style={s.inputWrap}>
+            <div style={{ ...s.inputBox, ...((!activeRoom || !connected) ? {opacity:0.5} : {}) }}>
               <textarea
-                style={s.textarea}
+                style={s.ta}
                 value={inputText}
                 onChange={e => { setInputText(e.target.value); sendTypingEvent() }}
                 onKeyDown={handleKeyDown}
@@ -366,43 +452,46 @@ export default function Chat() {
                 disabled={!activeRoom || !connected}
                 rows={1}
               />
-              <button style={{ ...s.sendBtn, opacity: (!activeRoom || !connected || !inputText.trim()) ? 0.4 : 1 }}
-                onClick={sendMessage} disabled={!activeRoom || !connected || !inputText.trim()}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <button
+                style={{ ...s.sendBtn, ...(canSend ? s.sendActive : {}) }}
+                onClick={sendMessage}
+                disabled={!canSend}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <line x1="22" y1="2" x2="11" y2="13"/>
                   <polygon points="22 2 15 22 11 13 2 9 22 2"/>
                 </svg>
               </button>
             </div>
-            <div style={s.inputHint}>Enter ↵ to send  ·  Shift+Enter for new line</div>
+            <div style={s.hint}>↵ Enter to send · Shift+↵ for new line</div>
           </div>
         </div>
       </div>
 
-      {/* CREATE ROOM MODAL */}
+      {/* ── MODAL ── */}
       {showModal && (
-        <div style={s.modalOverlay} onClick={e => e.target === e.currentTarget && setShowModal(false)}>
+        <div style={s.overlay} onClick={e => e.target === e.currentTarget && setShowModal(false)}>
           <div style={s.modal}>
-            <div style={s.modalHeader}>
-              <span style={s.modalTitle}>Create a new channel</span>
-              <button style={s.modalClose} onClick={() => setShowModal(false)}>✕</button>
+            <div style={s.modalTop}>
+              <span style={s.modalTitle}>New Channel</span>
+              <button style={s.modalX} onClick={() => setShowModal(false)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
             </div>
-            <p style={s.modalSub}>Channel names are lowercase with dashes</p>
-            <div style={s.modalInputWrap}>
-              <span style={s.modalHash}>#</span>
-              <input
-                style={s.modalInput}
-                type="text"
-                placeholder="e.g. dev-talk"
+            <p style={s.modalSub}>Lowercase names, dashes for spaces</p>
+            <div style={s.modalField}>
+              <span style={s.mHash}>#</span>
+              <input style={s.mInput} type="text" placeholder="e.g. dev-talk"
                 value={newRoomName}
                 onChange={e => setNewRoomName(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && createRoom()}
-                autoFocus
-              />
+                autoFocus />
             </div>
-            <div style={s.modalActions}>
-              <button style={s.modalCancel} onClick={() => { setShowModal(false); setNewRoomName('') }}>Cancel</button>
-              <button style={s.modalCreate} onClick={createRoom}>Create Channel</button>
+            <div style={s.modalBtns}>
+              <button style={s.mCancel} onClick={() => { setShowModal(false); setNewRoomName('') }}>Cancel</button>
+              <button style={s.mCreate} onClick={createRoom}>Create Channel</button>
             </div>
           </div>
         </div>
@@ -410,97 +499,108 @@ export default function Chat() {
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap');
-        @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
-        @keyframes fadeSlide { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
-        ::-webkit-scrollbar { width: 4px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #030712; }
+        @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes slideDown { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+        ::-webkit-scrollbar { width: 3px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.2); border-radius: 99px; }
-        textarea::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.15); border-radius: 99px; }
       `}</style>
     </>
   )
 }
 
-/* ─── Styles ────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════
+   STYLES
+═══════════════════════════════════════════════════════════════ */
 const s = {
-  shell: { display:'flex', height:'100vh', background:'#030712', fontFamily:"'Sora',sans-serif", overflow:'hidden' },
+  shell: { display:'flex', height:'100vh', background:'#040d1a', fontFamily:"'Sora',sans-serif", overflow:'hidden' },
 
-  // Sidebar
-  sidebar: { width:258, background:'#0a1628', borderRight:'1px solid rgba(148,163,184,0.08)', display:'flex', flexDirection:'column', flexShrink:0, position:'relative', zIndex:10 },
-  sidebarTop: { padding:'18px 16px 14px', borderBottom:'1px solid rgba(148,163,184,0.08)' },
-  brand: { display:'flex', alignItems:'center', gap:9, marginBottom:14 },
-  brandIcon: { width:30, height:30, borderRadius:8, background:'linear-gradient(135deg,#3b82f6,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 },
-  brandName: { fontSize:16, fontWeight:700, color:'#f1f5f9', letterSpacing:'-0.02em' },
-  userChip: { display:'flex', alignItems:'center', gap:8, padding:'8px 10px', background:'rgba(30,41,59,0.6)', borderRadius:10, border:'1px solid rgba(148,163,184,0.08)' },
-  userChipName: { fontSize:12, color:'#94a3b8', fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' },
-  sectionLabel: { fontSize:10, fontWeight:600, letterSpacing:'0.1em', color:'#334155', padding:'14px 16px 6px', textTransform:'uppercase' },
-  roomsList: { flex:1, overflowY:'auto', padding:'4px 10px' },
-  emptyRooms: { fontSize:12, color:'#334155', padding:'10px 6px' },
-  roomItem: { display:'flex', alignItems:'center', gap:8, padding:'8px 10px', borderRadius:8, cursor:'pointer', marginBottom:2, border:'1px solid transparent', transition:'background 0.15s' },
-  roomItemActive: { background:'rgba(59,130,246,0.1)', border:'1px solid rgba(59,130,246,0.2)' },
-  roomHash: { fontFamily:'monospace', fontSize:15, fontWeight:700 },
+  sidebar: { width:258, minWidth:258, background:'#07111f', borderRight:'1px solid rgba(255,255,255,0.05)', display:'flex', flexDirection:'column', overflow:'hidden' },
+  sTop: { padding:'18px 14px 14px', borderBottom:'1px solid rgba(255,255,255,0.05)' },
+  brand: { display:'flex', alignItems:'center', gap:9, marginBottom:16 },
+  brandIcon: { width:32, height:32, borderRadius:8, background:'linear-gradient(135deg,#3b82f6,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 },
+  brandName: { fontSize:16, fontWeight:700, color:'#f1f5f9', letterSpacing:'-0.03em' },
+  userChip: { display:'flex', alignItems:'center', gap:9, padding:'9px 10px', background:'rgba(255,255,255,0.04)', borderRadius:10, border:'1px solid rgba(255,255,255,0.06)' },
+  userChipName: { fontSize:12, fontWeight:600, color:'#cbd5e1', lineHeight:1.3 },
+  userChipStatus: { display:'flex', alignItems:'center', gap:4, fontSize:10, color:'#4ade80', marginTop:2 },
+  userStatusDot: { width:5, height:5, borderRadius:'50%', background:'#22c55e' },
+  secLabel: { fontSize:10, fontWeight:600, letterSpacing:'0.12em', color:'#1e3a5f', padding:'14px 14px 6px', textTransform:'uppercase' },
+  roomsList: { flex:1, overflowY:'auto', padding:'4px 8px' },
+  noRooms: { fontSize:12, color:'#1e3a5f', padding:'10px 6px' },
+  roomItem: { display:'flex', alignItems:'center', gap:7, padding:'8px 10px', borderRadius:8, cursor:'pointer', marginBottom:2, border:'1px solid transparent', transition:'background 0.12s' },
+  roomActive: { background:'rgba(59,130,246,0.1)', border:'1px solid rgba(59,130,246,0.2)' },
+  roomHash: { fontFamily:'monospace', fontSize:15, fontWeight:700, lineHeight:1 },
   roomName: { fontSize:13, flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' },
-  newRoomBtn: { margin:'8px 10px', padding:'8px 12px', border:'1px dashed rgba(148,163,184,0.15)', borderRadius:9, background:'transparent', color:'#475569', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontFamily:"'Sora',sans-serif", transition:'color 0.15s, border-color 0.15s' },
-  newRoomPlus: { fontSize:16, lineHeight:1 },
-  sidebarFooter: { padding:'12px', borderTop:'1px solid rgba(148,163,184,0.08)', display:'flex', flexDirection:'column', gap:8 },
-  connStatus: { display:'flex', alignItems:'center', gap:7, padding:'6px 10px' },
-  connDot: { width:7, height:7, borderRadius:'50%', flexShrink:0, transition:'background 0.3s, box-shadow 0.3s' },
-  connLabel: { fontSize:11, color:'#475569' },
-  logoutBtn: { width:'100%', padding:'8px', background:'transparent', border:'1px solid rgba(148,163,184,0.1)', borderRadius:8, color:'#475569', fontSize:12, cursor:'pointer', fontFamily:"'Sora',sans-serif", transition:'color 0.15s' },
+  activePip: { width:5, height:5, borderRadius:'50%', background:'#3b82f6', flexShrink:0 },
+  newRoomBtn: { margin:'8px', padding:'9px 12px', border:'1px dashed rgba(255,255,255,0.08)', borderRadius:9, background:'transparent', color:'#334155', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', gap:7, fontFamily:"'Sora',sans-serif" },
+  sFooter: { padding:'12px 10px', borderTop:'1px solid rgba(255,255,255,0.05)', display:'flex', flexDirection:'column', gap:8 },
+  connRow: { display:'flex', alignItems:'center', gap:7, padding:'4px 6px' },
+  dot: { width:7, height:7, borderRadius:'50%', flexShrink:0, transition:'background 0.3s, box-shadow 0.4s' },
+  connLabel: { fontSize:11, color:'#334155' },
+  logoutBtn: { display:'flex', alignItems:'center', gap:7, width:'100%', padding:'9px 10px', background:'transparent', border:'1px solid rgba(255,255,255,0.06)', borderRadius:8, color:'#475569', fontSize:12, cursor:'pointer', fontFamily:"'Sora',sans-serif" },
 
-  // Main
-  main: { flex:1, display:'flex', flexDirection:'column', overflow:'hidden', background:'#050d1a' },
-  chatHeader: { padding:'14px 20px', borderBottom:'1px solid rgba(148,163,184,0.08)', display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(10,22,40,0.9)', backdropFilter:'blur(12px)', flexShrink:0 },
-  headerLeft: { display:'flex', alignItems:'center', gap:12 },
-  sidebarToggle: { background:'transparent', border:'none', color:'#475569', cursor:'pointer', padding:4, display:'flex', alignItems:'center' },
-  headerRoom: { fontSize:15, fontWeight:600, color:'#f1f5f9', letterSpacing:'-0.01em' },
-  headerRight: { display:'flex', alignItems:'center', gap:12 },
-  memberCount: { display:'flex', alignItems:'center', gap:5, fontSize:11, color:'#475569' },
+  main: { flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 },
 
-  messagesArea: { flex:1, overflowY:'auto', padding:'24px 24px 8px', display:'flex', flexDirection:'column', gap:4 },
-  emptyChat: { margin:'auto', textAlign:'center', color:'#334155' },
-  emptyChatIcon: { fontSize:40, marginBottom:12 },
-  emptyChatTitle: { fontSize:16, fontWeight:600, color:'#475569', marginBottom:6 },
-  emptyChatSub: { fontSize:13, color:'#334155' },
-  channelIntro: { padding:'20px 0 28px', display:'flex', flexDirection:'column', alignItems:'flex-start', gap:6, borderBottom:'1px solid rgba(148,163,184,0.06)', marginBottom:16 },
-  channelIntroIcon: { fontSize:42, fontWeight:800, color:'#1e3a5f', lineHeight:1, fontFamily:'monospace' },
-  channelIntroTitle: { fontSize:22, fontWeight:700, color:'#e2e8f0', letterSpacing:'-0.02em' },
-  channelIntroSub: { fontSize:13, color:'#475569' },
-  systemMsg: { display:'flex', alignItems:'center', gap:7, textAlign:'left', fontSize:11.5, color:'#334155', padding:'6px 0', fontStyle:'italic' },
-  systemDot: { width:5, height:5, borderRadius:'50%', background:'#1e3a5f', flexShrink:0 },
-  typingRow: { display:'flex', alignItems:'center', gap:8, padding:'4px 0' },
-  typingDots: { display:'flex', gap:3 },
+  header: { padding:'14px 20px', borderBottom:'1px solid rgba(255,255,255,0.05)', display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(7,17,31,0.95)', backdropFilter:'blur(16px)', flexShrink:0 },
+  headerL: { display:'flex', alignItems:'center', gap:12 },
+  menuBtn: { background:'transparent', border:'none', color:'#334155', cursor:'pointer', padding:5, display:'flex', alignItems:'center', borderRadius:6, flexShrink:0 },
+  headerHash: { fontSize:18, fontFamily:'monospace', fontWeight:700, color:'#1e3a5f', marginRight:4 },
+  headerRoom: { fontSize:15, fontWeight:600, color:'#e2e8f0', letterSpacing:'-0.02em' },
+  headerR: { display:'flex', alignItems:'center', gap:10 },
+  onlinePill: { display:'flex', alignItems:'center', gap:5, fontSize:11, color:'#4ade80', background:'rgba(34,197,94,0.08)', border:'1px solid rgba(34,197,94,0.15)', padding:'4px 10px', borderRadius:99 },
+  onlineDot: { width:5, height:5, borderRadius:'50%', background:'#22c55e' },
+
+  msgs: { flex:1, overflowY:'auto', padding:'20px 24px 12px', display:'flex', flexDirection:'column', gap:2 },
+
+  emptyState: { margin:'auto', textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', gap:12 },
+  emptyIconWrap: { width:64, height:64, borderRadius:16, background:'rgba(30,58,95,0.2)', display:'flex', alignItems:'center', justifyContent:'center' },
+  emptyTitle: { fontSize:16, fontWeight:600, color:'#334155' },
+  emptySub: { fontSize:13, color:'#1e3a5f', maxWidth:260, lineHeight:1.6 },
+
+  intro: { padding:'16px 0 28px', borderBottom:'1px solid rgba(255,255,255,0.04)', marginBottom:16 },
+  introHash: { fontSize:52, fontWeight:800, color:'#0f2744', fontFamily:'monospace', lineHeight:1, marginBottom:8 },
+  introTitle: { fontSize:22, fontWeight:700, color:'#e2e8f0', letterSpacing:'-0.02em', marginBottom:6 },
+  introSub: { fontSize:13, color:'#334155', lineHeight:1.7 },
+
+  sysMsg: { display:'flex', alignItems:'center', gap:10, padding:'10px 0', fontSize:11, color:'#1e3a5f' },
+  sysMsgLine: { flex:1, height:1, background:'rgba(255,255,255,0.03)' },
+
+  typingRow: { display:'flex', alignItems:'center', gap:10, padding:'4px 0' },
+  typingBubble: { display:'flex', alignItems:'center', gap:3, padding:'6px 10px', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:12 },
   typingDot: { width:5, height:5, borderRadius:'50%', background:'#3b82f6', display:'inline-block', animation:'bounce 1.2s ease-in-out infinite' },
-  typingText: { fontSize:11, color:'#475569', fontStyle:'italic' },
+  typingTxt: { fontSize:11.5, color:'#334155', fontStyle:'italic' },
 
-  inputArea: { padding:'16px 20px 18px', borderTop:'1px solid rgba(148,163,184,0.08)', background:'rgba(10,22,40,0.9)', flexShrink:0 },
-  inputWrap: { display:'flex', alignItems:'flex-end', gap:10, background:'rgba(20,32,54,0.8)', border:'1px solid rgba(148,163,184,0.12)', borderRadius:12, padding:'4px 4px 4px 14px' },
-  textarea: { flex:1, background:'transparent', border:'none', outline:'none', color:'#e2e8f0', fontFamily:"'Sora',sans-serif", fontSize:13.5, resize:'none', padding:'8px 0', minHeight:38, maxHeight:120, lineHeight:1.6 },
-  sendBtn: { width:38, height:38, background:'linear-gradient(135deg,#3b82f6,#6366f1)', border:'none', borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', color:'#fff', flexShrink:0, transition:'opacity 0.2s' },
-  inputHint: { fontSize:10.5, color:'#1e3a5f', marginTop:7, letterSpacing:'0.01em' },
+  inputArea: { padding:'14px 20px 18px', borderTop:'1px solid rgba(255,255,255,0.05)', background:'rgba(7,17,31,0.95)', flexShrink:0 },
+  inputBox: { display:'flex', alignItems:'flex-end', background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.09)', borderRadius:14, padding:'4px 4px 4px 16px' },
+  ta: { flex:1, background:'transparent', border:'none', outline:'none', color:'#e2e8f0', fontFamily:"'Sora',sans-serif", fontSize:13.5, resize:'none', padding:'9px 8px 9px 0', minHeight:40, maxHeight:140, lineHeight:1.65 },
+  sendBtn: { width:40, height:40, background:'rgba(59,130,246,0.1)', border:'1px solid rgba(59,130,246,0.15)', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', cursor:'not-allowed', color:'#1e3a5f', flexShrink:0, marginBottom:1, transition:'all 0.2s' },
+  sendActive: { background:'linear-gradient(135deg,#3b82f6,#6366f1)', border:'1px solid transparent', color:'#fff', cursor:'pointer', boxShadow:'0 4px 12px rgba(59,130,246,0.3)' },
+  hint: { fontSize:10.5, color:'#1e3a5f', marginTop:7, letterSpacing:'0.02em' },
 
-  // Modal
-  modalOverlay: { position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', backdropFilter:'blur(6px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100 },
-  modal: { background:'#0a1628', border:'1px solid rgba(148,163,184,0.12)', borderRadius:16, padding:'28px', width:360, boxShadow:'0 30px 60px rgba(0,0,0,0.6)', animation:'fadeSlide 0.2s ease' },
-  modalHeader: { display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 },
-  modalTitle: { fontSize:16, fontWeight:600, color:'#f1f5f9' },
-  modalClose: { background:'transparent', border:'none', color:'#475569', fontSize:16, cursor:'pointer', lineHeight:1, padding:2 },
-  modalSub: { fontSize:12, color:'#475569', marginBottom:16 },
-  modalInputWrap: { display:'flex', alignItems:'center', gap:8, background:'rgba(30,41,59,0.8)', border:'1px solid rgba(148,163,184,0.15)', borderRadius:10, padding:'10px 14px', marginBottom:18 },
-  modalHash: { fontFamily:'monospace', fontSize:16, fontWeight:700, color:'#475569' },
-  modalInput: { flex:1, background:'transparent', border:'none', outline:'none', color:'#f1f5f9', fontFamily:"'Sora',sans-serif", fontSize:14 },
-  modalActions: { display:'flex', gap:8, justifyContent:'flex-end' },
-  modalCancel: { padding:'9px 18px', background:'transparent', border:'1px solid rgba(148,163,184,0.15)', borderRadius:8, color:'#94a3b8', fontSize:13, cursor:'pointer', fontFamily:"'Sora',sans-serif" },
-  modalCreate: { padding:'9px 18px', background:'linear-gradient(135deg,#3b82f6,#6366f1)', border:'none', borderRadius:8, color:'#fff', fontSize:13, cursor:'pointer', fontWeight:600, fontFamily:"'Sora',sans-serif" },
+  overlay: { position:'fixed', inset:0, background:'rgba(0,0,0,0.75)', backdropFilter:'blur(8px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:100 },
+  modal: { background:'#07111f', border:'1px solid rgba(255,255,255,0.08)', borderRadius:16, padding:'28px', width:360, boxShadow:'0 32px 64px rgba(0,0,0,0.7)', animation:'fadeUp 0.2s ease' },
+  modalTop: { display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:6 },
+  modalTitle: { fontSize:16, fontWeight:700, color:'#f1f5f9' },
+  modalX: { background:'transparent', border:'none', color:'#475569', cursor:'pointer', padding:4, display:'flex' },
+  modalSub: { fontSize:12, color:'#334155', marginBottom:16 },
+  modalField: { display:'flex', alignItems:'center', gap:10, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:10, padding:'11px 14px', marginBottom:18 },
+  mHash: { fontFamily:'monospace', fontSize:16, fontWeight:800, color:'#334155' },
+  mInput: { flex:1, background:'transparent', border:'none', outline:'none', color:'#f1f5f9', fontFamily:"'Sora',sans-serif", fontSize:14 },
+  modalBtns: { display:'flex', gap:8, justifyContent:'flex-end' },
+  mCancel: { padding:'9px 18px', background:'transparent', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, color:'#64748b', fontSize:13, cursor:'pointer', fontFamily:"'Sora',sans-serif" },
+  mCreate: { padding:'9px 20px', background:'linear-gradient(135deg,#3b82f6,#6366f1)', border:'none', borderRadius:8, color:'#fff', fontSize:13, cursor:'pointer', fontWeight:600, fontFamily:"'Sora',sans-serif", boxShadow:'0 4px 12px rgba(59,130,246,0.3)' },
 }
 
-/* ─── Cold-start banner styles ──────────────────────────────── */
-const banner = {
-  wrap: { display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding:'9px 16px', background:'rgba(30,58,138,0.3)', borderBottom:'1px solid rgba(59,130,246,0.2)', flexShrink:0, animation:'fadeSlide 0.3s ease' },
+const ban = {
+  wrap: { display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, padding:'10px 18px', background:'rgba(23,37,84,0.5)', borderBottom:'1px solid rgba(59,130,246,0.15)', flexShrink:0, animation:'slideDown 0.3s ease' },
   left: { display:'flex', alignItems:'center', gap:8 },
-  text: { fontSize:12, color:'#93c5fd' },
-  right: { display:'flex', alignItems:'center', gap:10 },
-  track: { width:100, height:4, background:'rgba(148,163,184,0.15)', borderRadius:99, overflow:'hidden' },
+  text: { fontSize:12, color:'#93c5fd', fontFamily:"'Sora',sans-serif" },
+  right: { display:'flex', alignItems:'center', gap:10, flexShrink:0 },
+  track: { width:90, height:4, background:'rgba(255,255,255,0.07)', borderRadius:99, overflow:'hidden' },
   fill: { height:'100%', background:'linear-gradient(90deg,#3b82f6,#8b5cf6)', borderRadius:99, transition:'width 1s linear' },
-  close: { background:'transparent', border:'none', color:'#475569', cursor:'pointer', fontSize:13, lineHeight:1, padding:2 },
+  close: { background:'transparent', border:'none', color:'#334155', cursor:'pointer', fontSize:14, lineHeight:1, padding:2 },
 }
+
