@@ -56,11 +56,44 @@ const useChatRooms = (token) => {
     fetchRooms()
   }, [token])
 
+  const createRoom = async (name) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/rooms`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name }),
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to create room')
+      }
+
+      const room = await res.json()
+
+      setRooms((prev) => [...prev, room])
+
+      return {
+        ok: true,
+        room,
+      }
+
+    } catch (err) {
+      return {
+        ok: false,
+        error: err.message,
+      }
+    }
+  }
+
   return {
     rooms,
     setRooms,
     loading,
     error,
+    createRoom,
   }
 }
 
