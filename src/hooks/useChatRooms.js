@@ -1,63 +1,81 @@
-import { API_BASE } from '../config/api'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
-export function useChatRooms(token, { onError } = {}) {
+const API_BASE = 'https://envechat.onrender.com'
+
+export default function useChatRooms(token) {
   const [rooms, setRooms] = useState([])
-  const [loading, setLoading] = useState(Boolean(token))
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const refetch = useCallback(async () => {
-    if (!token) {
-      setRooms([])
-      return
-    }
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch(`${API_BASE}/api/rooms`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (!res.ok) throw new Error('Could not load channels')
-      const data = await res.json()
-      setRooms(Array.isArray(data) ? data : [])
-    } catch (e) {
-      const msg = e?.message || 'Channels request failed'
-      setError(msg)
-      onError?.(msg)
-    } finally {
-      setLoading(false)
-    }
-  }, [token, onError])
-
   useEffect(() => {
-    refetch()
-  }, [refetch])
+    if (!token) return
 
-  const createRoom = useCallback(
-    async (rawName) => {
-      const name = rawName.trim().toLowerCase().replace(/\s+/g, '-')
-      if (!name || !token) return { ok: false, error: 'Invalid name' }
+    let isMounted = true
+    let retryTimeout = null
+
+    const fetchRooms = async () => {
       try {
+        setLoading(true)
+
         const res = await fetch(`${API_BASE}/api/rooms`, {
-          method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ name }),
         })
-        if (!res.ok) throw new Error('Create channel failed')
-        const room = await res.json()
-        setRooms((prev) => [...prev, room])
-        return { ok: true, room }
-      } catch (e) {
-        const msg = e?.message || 'Could not create channel'
-        onError?.(msg)
-        return { ok: false, error: msg }
-      }
-    },
-    [token, onError],
-  )
 
-  return { rooms, setRooms, loading, error, refetch, createRoom }
+        if (!res.ok) {
+          throw new Error('Failed to fetch rooms')
+        }
+
+        const data = await res.json()
+
+        if (!isMounted) return
+
+        setRooms(prev => {
+          const prevIds = prev.map(r => r.id).join(',')
+          const newIds = data.map(r => r.id).join(',')
+
+          if (prevIds === newIds) {
+            return prev
+          }
+
+          return data
+        })
+
+        setError(null)
+
+      } catch (err) {
+        console.error('Rooms fetch failed:', err)
+
+        if (isMounted) {
+          setError(err.message)
+
+          retryTimeout = setTimeout(() => {
+            fetchRooms()
+          }, 5000)
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchRooms()
+
+    return () => {
+      isMounted = false
+
+      if (retryTimeout) {
+        clearTimeout(retryTimeout)
+      }
+    }
+  }, [token])
+
+  return {
+    rooms,
+    setRooms,
+    loading,
+    error,
+  }
 }
