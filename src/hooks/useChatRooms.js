@@ -1,17 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 const API_BASE = 'https://envechat.onrender.com'
 
+let cachedRooms = []
+let alreadyFetched = false
+
 export default function useChatRooms(token) {
-  const [rooms, setRooms] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [rooms, setRooms] = useState(cachedRooms)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+
+  const fetchingRef = useRef(false)
 
   useEffect(() => {
     if (!token) return
 
-    let isMounted = true
-    let retryTimeout = null
+    // STOP duplicate fetching
+    if (alreadyFetched || fetchingRef.current) {
+      return
+    }
+
+    fetchingRef.current = true
+    alreadyFetched = true
 
     const fetchRooms = async () => {
       try {
@@ -29,47 +39,24 @@ export default function useChatRooms(token) {
 
         const data = await res.json()
 
-        if (!isMounted) return
-
-        setRooms(prev => {
-          const prevIds = prev.map(r => r.id).join(',')
-          const newIds = data.map(r => r.id).join(',')
-
-          if (prevIds === newIds) {
-            return prev
-          }
-
-          return data
-        })
-
+        cachedRooms = data
+        setRooms(data)
         setError(null)
 
       } catch (err) {
         console.error('Rooms fetch failed:', err)
+        setError(err.message)
 
-        if (isMounted) {
-          setError(err.message)
+        // allow retry later
+        alreadyFetched = false
 
-          retryTimeout = setTimeout(() => {
-            fetchRooms()
-          }, 5000)
-        }
       } finally {
-        if (isMounted) {
-          setLoading(false)
-        }
+        fetchingRef.current = false
+        setLoading(false)
       }
     }
 
     fetchRooms()
-
-    return () => {
-      isMounted = false
-
-      if (retryTimeout) {
-        clearTimeout(retryTimeout)
-      }
-    }
   }, [token])
 
   return {
