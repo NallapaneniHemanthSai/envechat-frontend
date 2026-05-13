@@ -281,15 +281,17 @@ export default function ChatPage() {
             const optimisticIndex = prev.findIndex(
               (m) =>
                 m._optimistic &&
-                m.content === msg.content &&
-                m.senderUsername === msg.senderUsername,
+                m.content === msg.content
             )
 
             if (optimisticIndex !== -1) {
               const updated = [...prev]
+              const optMsg = updated[optimisticIndex]
 
               updated[optimisticIndex] = {
+                ...optMsg,
                 ...msg,
+                senderUsername: optMsg.senderUsername,
                 _optimistic: false,
               }
 
@@ -305,7 +307,13 @@ export default function ChatPage() {
 
             if (exists) return prev
 
-            return [...prev, msg]
+            const incomingMsg = {
+              ...msg,
+              id: msg.id || Date.now() + Math.random(),
+              sentAt: msg.sentAt || new Date().toISOString(),
+            }
+
+            return [...prev, incomingMsg]
           })
         } catch (err) {
           console.error(err)
