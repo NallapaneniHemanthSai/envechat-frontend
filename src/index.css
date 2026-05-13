@@ -1,41 +1,241 @@
-* {
+/* ═══════════════════════════════════════════════════════════
+   EnveChat — Discord-Inspired Design System
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Discord Dark Theme Palette ── */
+  --bg-primary: #313338;
+  --bg-secondary: #2b2d31;
+  --bg-tertiary: #1e1f22;
+  --bg-modifier-hover: rgba(79, 84, 92, 0.16);
+  --bg-modifier-active: rgba(79, 84, 92, 0.24);
+  --bg-modifier-selected: rgba(79, 84, 92, 0.32);
+  --bg-floating: #111214;
+
+  /* ── Text Colors ── */
+  --text-normal: #dbdee1;
+  --text-muted: #949ba4;
+  --text-faint: #6d6f78;
+  --text-link: #00a8fc;
+  --header-primary: #f2f3f5;
+  --header-secondary: #b5bac1;
+
+  /* ── Brand / Accent ── */
+  --brand-500: #5865f2;
+  --brand-560: #4752c4;
+  --brand-600: #3c45a5;
+  --brand-hover: #4752c4;
+
+  /* ── Status Colors ── */
+  --status-online: #23a559;
+  --status-idle: #f0b232;
+  --status-dnd: #f23f43;
+  --status-offline: #80848e;
+  --status-streaming: #593695;
+
+  /* ── Semantic Colors ── */
+  --info-positive: #23a559;
+  --info-warning: #f0b232;
+  --info-danger: #f23f43;
+  --info-help: #5865f2;
+
+  /* ── Channel Colors ── */
+  --channel-default: #80848e;
+  --channel-hover: #dbdee1;
+  --channel-selected: #f2f3f5;
+
+  /* ── Misc ── */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-faint: rgba(255, 255, 255, 0.04);
+  --elevation-low: 0 1px 0 rgba(0, 0, 0, 0.2), 0 1.5px 0 rgba(0, 0, 0, 0.05), 0 2px 0 rgba(0, 0, 0, 0.05);
+  --elevation-medium: 0 4px 4px rgba(0, 0, 0, 0.16);
+  --elevation-high: 0 8px 16px rgba(0, 0, 0, 0.24);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-round: 50%;
+
+  /* ── Font ── */
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  --font-mono: 'Consolas', 'Andale Mono WT', 'Andale Mono', 'Menlo', monospace;
+}
+
+/* ── Reset ── */
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #1a1a2e;
-  color: #eee;
-  height: 100vh;
-}
-
-input {
-  outline: none;
-  border: 1px solid #444;
-  background: #2a2a3e;
-  color: #eee;
-  padding: 10px 14px;
-  border-radius: 8px;
+  font-family: var(--font-primary);
+  background: var(--bg-tertiary);
+  color: var(--text-normal);
   font-size: 14px;
-  width: 100%;
+  line-height: 1.375;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-input:focus {
-  border-color: #7c6aff;
+/* ── Scrollbar (Discord-style) ── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+  margin: 4px 0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  min-height: 40px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1a1b1e;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ── Selection ── */
+::selection {
+  background: rgba(88, 101, 242, 0.3);
+  color: #fff;
+}
+
+/* ── Links ── */
+a {
+  color: var(--text-link);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* ── Input Reset ── */
+input, textarea, button {
+  font-family: var(--font-primary);
+}
+
+input, textarea {
+  outline: none;
+  border: none;
+  background: transparent;
+  color: var(--text-normal);
 }
 
 button {
   cursor: pointer;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 10px 20px;
-  transition: opacity 0.2s;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
 }
 
-button:hover {
-  opacity: 0.85;
+/* ═══════════════════════════════════════════════════════════
+   Keyframe Animations
+   ═══════════════════════════════════════════════════════════ */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.8); }
+  70% { transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(88, 101, 242, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(88, 101, 242, 0); }
+}
+
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+}
+
+@keyframes typingBounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+  20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 0.6; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes floatOrb {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -20px) scale(1.1); }
+  50% { transform: translate(-20px, 20px) scale(0.9); }
+  75% { transform: translate(10px, -10px) scale(1.05); }
+}
+
+@keyframes statusPulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50% { box-shadow: 0 0 0 3px transparent; }
+}
+
+@keyframes messageSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
