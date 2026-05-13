@@ -21,7 +21,8 @@ export default function Chat() {
   const [connected, setConnected] = useState(false)
   const [typingUsers, setTypingUsers] = useState([])
 
-  const [mobileView, setMobileView] = useState('rooms')
+  const [mobileView, setMobileView] =
+    useState('rooms')
 
   const isMobile = window.innerWidth <= 768
 
@@ -232,14 +233,21 @@ export default function Chat() {
         {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type':
+              'application/json',
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ name }),
         }
       )
 
-      if (!res.ok) return
+      if (!res.ok) {
+        console.error(
+          'Create room failed:',
+          await res.text()
+        )
+        return
+      }
 
       const room = await res.json()
 
@@ -253,7 +261,7 @@ export default function Chat() {
       setNewRoomName('')
       setShowModal(false)
     } catch (e) {
-      console.error(e)
+      console.error('Create room error:', e)
     }
   }
 
@@ -394,6 +402,7 @@ export default function Chat() {
       border: '1px dashed #334155',
       borderRadius: 12,
       color: '#94a3b8',
+      cursor: 'pointer',
     },
 
     sidebarFooter: {
@@ -408,6 +417,7 @@ export default function Chat() {
       border: '1px solid #334155',
       borderRadius: 12,
       color: '#cbd5e1',
+      cursor: 'pointer',
     },
 
     main: {
@@ -446,6 +456,7 @@ export default function Chat() {
       color: '#64748b',
       fontSize: 12,
       padding: 8,
+      fontStyle: 'italic',
     },
 
     inputArea: {
@@ -485,6 +496,9 @@ export default function Chat() {
         'linear-gradient(135deg,#0ea5e9,#0284c7)',
       color: '#fff',
       flexShrink: 0,
+      border: 'none',
+      cursor: 'pointer',
+      fontSize: 18,
     },
   }
 
@@ -578,6 +592,8 @@ export default function Chat() {
                     marginRight: 12,
                     fontSize: 20,
                     padding: 0,
+                    border: 'none',
+                    cursor: 'pointer',
                   }}
                 >
                   ←
@@ -616,6 +632,17 @@ export default function Chat() {
                 )
               }
 
+              if (msg.type === 'LEAVE') {
+                return (
+                  <div
+                    key={i}
+                    style={s.systemMsg}
+                  >
+                    {msg.senderUsername} left
+                  </div>
+                )
+              }
+
               const own =
                 msg.senderUsername === username
 
@@ -647,7 +674,11 @@ export default function Chat() {
                   fontStyle: 'italic',
                 }}
               >
-                {typingUsers.join(', ')} typing...
+                {typingUsers.join(', ')}{' '}
+                {typingUsers.length === 1
+                  ? 'is'
+                  : 'are'}{' '}
+                typing...
               </div>
             )}
 
@@ -665,6 +696,7 @@ export default function Chat() {
                 }}
                 onKeyDown={handleKeyDown}
                 placeholder="Type message..."
+                disabled={!connected}
               />
 
               <button
@@ -672,6 +704,123 @@ export default function Chat() {
                 onClick={sendMessage}
               >
                 ➤
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 999,
+            padding: 20,
+            backdropFilter: 'blur(6px)',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: 400,
+              background: '#111827',
+              border: '1px solid #334155',
+              borderRadius: 24,
+              padding: 28,
+              boxShadow:
+                '0 20px 60px rgba(0,0,0,0.45)',
+            }}
+          >
+            <h2
+              style={{
+                color: '#f8fafc',
+                fontSize: 22,
+                fontWeight: 700,
+                marginBottom: 8,
+              }}
+            >
+              Create Room
+            </h2>
+
+            <p
+              style={{
+                color: '#64748b',
+                fontSize: 13,
+                marginBottom: 20,
+                lineHeight: 1.5,
+              }}
+            >
+              Start a new realtime conversation
+              room.
+            </p>
+
+            <input
+              value={newRoomName}
+              onChange={e =>
+                setNewRoomName(e.target.value)
+              }
+              placeholder="room name"
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  createRoom()
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '14px 16px',
+                background: '#0f172a',
+                border: '1px solid #334155',
+                borderRadius: 14,
+                color: '#f8fafc',
+                fontSize: 14,
+                outline: 'none',
+                marginBottom: 22,
+                boxSizing: 'border-box',
+              }}
+            />
+
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 12,
+              }}
+            >
+              <button
+                onClick={() =>
+                  setShowModal(false)
+                }
+                style={{
+                  padding: '12px 16px',
+                  background: 'transparent',
+                  border: '1px solid #334155',
+                  borderRadius: 12,
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={createRoom}
+                style={{
+                  padding: '12px 18px',
+                  background:
+                    'linear-gradient(135deg,#0ea5e9,#0284c7)',
+                  border: 'none',
+                  borderRadius: 12,
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+              >
+                Create Room
               </button>
             </div>
           </div>
