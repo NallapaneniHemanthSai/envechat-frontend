@@ -62,13 +62,28 @@ export function CreateRoomModal({ open, name, onChangeName, onCreate, onClose })
   )
 }
 
-export function ProfileModal({ open, username, onClose }) {
+export function ProfileModal({ open, username, avatarUrl, onSetAvatar, onClose }) {
   if (!open) return null
   return (
     <ModalFrame title="Profile" subtitle="Frontend preview — wire to your API later" onClose={onClose}>
       <p className="text-sm text-slate-300">
         Signed in as <span className="font-medium text-white">{username}</span>
       </p>
+
+      <div className="mt-4">
+        <label className="mb-1 block text-xs font-medium text-slate-400">Profile Photo URL (Local)</label>
+        <input
+          type="url"
+          value={avatarUrl || ''}
+          onChange={(e) => onSetAvatar(e.target.value)}
+          placeholder="https://example.com/avatar.png"
+          className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500/40"
+        />
+        <p className="mt-1.5 text-[11px] text-slate-500">
+          This is stored locally in your browser for now.
+        </p>
+      </div>
+
       <button
         type="button"
         onClick={onClose}

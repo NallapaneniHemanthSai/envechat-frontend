@@ -58,6 +58,7 @@ export default function ChatMessageList({
   welcomeRoomName,
   hasRoom,
   onScrollState,
+  currentUserAvatarUrl,
 }) {
   const scrollerRef = useRef(null)
   const endRef = useRef(null)
@@ -143,7 +144,7 @@ export default function ChatMessageList({
               Send a message to kick things off.
             </p>
             <div className="mt-6 flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.03] p-4">
-              <Avatar name={username} size={40} radius={10} />
+              <Avatar name={username} avatarUrl={currentUserAvatarUrl} size={40} radius={10} />
               <div className="text-left text-sm text-slate-400">
                 <span className="font-medium text-slate-200">Tip:</span> Press{' '}
                 <kbd className="rounded border border-white/15 bg-black/30 px-1.5 py-0.5 font-mono text-[11px] text-slate-300">
@@ -177,6 +178,7 @@ export default function ChatMessageList({
                 key={row.key}
                 msgs={row.msgs}
                 own={row.sender === username}
+                avatarUrl={row.sender === username ? currentUserAvatarUrl : null}
                 reactions={reactions}
                 onToggleReaction={onToggleReaction}
                 onReply={onReply}

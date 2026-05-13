@@ -30,7 +30,7 @@ import {
 export default function ChatPage() {
   const navigate = useNavigate()
 
-  const { token, username, logout } = useAuth()
+  const { token, username, avatarUrl, setAvatar, logout } = useAuth()
   const { toast } = useToast()
 
   const {
@@ -575,6 +575,7 @@ export default function ChatPage() {
             setSelectedRoomId(room.id)
           }
           username={username}
+          avatarUrl={avatarUrl}
           connected={connected}
           wsPhase={wsPhase}
           onLogout={handleLogout}
@@ -645,6 +646,7 @@ export default function ChatPage() {
           <ChatMessageList
             messages={messages}
             username={username}
+            currentUserAvatarUrl={avatarUrl}
             typingUsers={typingUsers}
             reactions={reactions}
             onToggleReaction={onToggleReaction}
@@ -683,6 +685,8 @@ export default function ChatPage() {
       <ProfileModal
         open={modalProfile}
         username={username}
+        avatarUrl={avatarUrl}
+        onSetAvatar={setAvatar}
         onClose={() => setModalProfile(false)}
       />
 

@@ -23,6 +23,7 @@ export default function ChatSidebar({
   activeRoom,
   onSelectRoom,
   username,
+  avatarUrl,
   connected,
   wsPhase,
   onLogout,
@@ -65,7 +66,7 @@ export default function ChatSidebar({
           onClick={onOpenProfile}
           className="mt-3 flex w-full items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.04] p-2.5 text-left transition hover:border-white/15 hover:bg-white/[0.06]"
         >
-          <Avatar name={username} size={30} radius={8} />
+          <Avatar name={username} avatarUrl={avatarUrl} size={30} radius={8} />
           <div className="min-w-0 flex-1">
             <div className="truncate text-xs font-semibold text-slate-200">{dn(username)}</div>
             <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-emerald-400/90">

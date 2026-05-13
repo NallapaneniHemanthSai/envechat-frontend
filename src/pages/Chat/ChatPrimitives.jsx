@@ -3,7 +3,29 @@ import { motion } from 'framer-motion'
 
 const QUICK_REACTIONS = ['👍', '❤️', '😂', '🎉']
 
-export function Avatar({ name, size = 34, radius = 9, className = '' }) {
+export function Avatar({ name, avatarUrl, size = 34, radius = 9, className = '' }) {
+  if (avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={name || 'Avatar'}
+        className={`shrink-0 select-none object-cover ${className}`}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: radius,
+        }}
+        onError={(e) => {
+          // Fallback to gradient if image fails to load
+          e.target.style.display = 'none';
+          if (e.target.nextSibling) {
+            e.target.nextSibling.style.display = 'flex';
+          }
+        }}
+      />
+    )
+  }
+
   return (
     <div
       className={`flex shrink-0 select-none items-center justify-center font-bold text-white ${className}`}
@@ -14,6 +36,7 @@ export function Avatar({ name, size = 34, radius = 9, className = '' }) {
         background: getGrad(name),
         fontSize: size * 0.33,
         letterSpacing: '-0.02em',
+        display: avatarUrl ? 'none' : 'flex'
       }}
     >
       {initials(name)}
@@ -88,6 +111,7 @@ export function ReconnectBanner({ visible, phase, onRetry }) {
 export function MessageCluster({
   msgs,
   own,
+  avatarUrl,
   reactions,
   onToggleReaction,
   onReply,
@@ -104,7 +128,7 @@ export function MessageCluster({
       className={`group/msg flex gap-2.5 py-0.5 ${own ? 'flex-row-reverse' : 'flex-row'}`}
     >
       <div className="w-9 shrink-0 pt-1 md:w-[34px]">
-        <Avatar name={first.senderUsername} size={34} radius={9} />
+        <Avatar name={first.senderUsername} avatarUrl={avatarUrl} size={34} radius={9} />
       </div>
       <div
         className={`flex min-w-0 max-w-[min(92vw,640px)] flex-col gap-0.5 ${own ? 'items-end' : 'items-start'}`}
