@@ -8,6 +8,7 @@ const API_BASE = 'https://envechat.onrender.com'
 
 export default function Chat() {
   const navigate = useNavigate()
+
   const username = localStorage.getItem('username')
   const token = localStorage.getItem('token')
 
@@ -19,6 +20,10 @@ export default function Chat() {
   const [showModal, setShowModal] = useState(false)
   const [connected, setConnected] = useState(false)
   const [typingUsers, setTypingUsers] = useState([])
+
+  const [mobileView, setMobileView] = useState('rooms')
+
+  const isMobile = window.innerWidth <= 768
 
   const stompClientRef = useRef(null)
   const subscriptionRef = useRef(null)
@@ -234,22 +239,21 @@ export default function Chat() {
         }
       )
 
-      if (!res.ok) {
-        console.error(
-          'Create room failed:',
-          await res.text()
-        )
-        return
-      }
+      if (!res.ok) return
 
       const room = await res.json()
 
       setRooms(prev => [...prev, room])
       setActiveRoom(room)
+
+      if (isMobile) {
+        setMobileView('chat')
+      }
+
       setNewRoomName('')
       setShowModal(false)
     } catch (e) {
-      console.error('Create room error:', e)
+      console.error(e)
     }
   }
 
@@ -292,14 +296,13 @@ export default function Chat() {
   const s = {
     shell: {
       display: 'flex',
-      height: '100vh',
+      height: '100dvh',
       background: '#0f172a',
-      fontFamily: "'Segoe UI', sans-serif",
       overflow: 'hidden',
     },
 
     sidebar: {
-      width: 260,
+      width: isMobile ? '100%' : 280,
       background: '#1e293b',
       borderRight: '1px solid #334155',
       display: 'flex',
@@ -308,94 +311,89 @@ export default function Chat() {
     },
 
     sidebarHeader: {
-      padding: '16px',
+      padding: 16,
       borderBottom: '1px solid #334155',
       display: 'flex',
-      alignItems: 'center',
       justifyContent: 'space-between',
+      alignItems: 'center',
     },
 
     logo: {
-      fontSize: 16,
-      fontWeight: 700,
       color: '#38bdf8',
+      fontWeight: 700,
+      fontSize: 18,
     },
 
     userPill: {
       display: 'flex',
       alignItems: 'center',
-      gap: 6,
+      gap: 8,
+      color: '#cbd5e1',
       fontSize: 12,
-      color: '#94a3b8',
     },
 
     avatar: name => ({
-      width: 28,
-      height: 28,
+      width: 30,
+      height: 30,
       borderRadius: '50%',
       background: getAvatarColor(name),
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      fontSize: 10,
-      fontWeight: 600,
+      fontSize: 11,
+      fontWeight: 700,
       color: '#fff',
-      flexShrink: 0,
     }),
 
     sectionLabel: {
-      fontSize: 10,
-      fontWeight: 600,
-      letterSpacing: '0.1em',
-      color: '#475569',
       padding: '12px 16px 6px',
+      fontSize: 11,
+      color: '#64748b',
       textTransform: 'uppercase',
+      letterSpacing: '0.1em',
     },
 
     roomsList: {
       flex: 1,
       overflowY: 'auto',
-      padding: '4px 8px',
+      padding: 8,
     },
 
     roomItem: active => ({
+      padding: '12px 14px',
+      borderRadius: 12,
+      marginBottom: 6,
+      cursor: 'pointer',
       display: 'flex',
       alignItems: 'center',
       gap: 10,
-      padding: '10px 12px',
-      borderRadius: 10,
-      cursor: 'pointer',
-      marginBottom: 4,
-      transition: 'all 0.2s ease',
       background: active
         ? 'rgba(56,189,248,0.12)'
         : 'transparent',
       border: active
-        ? '1px solid rgba(56,189,248,0.2)'
+        ? '1px solid rgba(56,189,248,0.25)'
         : '1px solid transparent',
     }),
 
     roomHash: active => ({
-      fontFamily: 'monospace',
-      fontSize: 14,
-      color: active ? '#38bdf8' : '#475569',
+      color: active ? '#38bdf8' : '#64748b',
     }),
 
     roomName: active => ({
-      fontSize: 13,
-      color: active ? '#f1f5f9' : '#94a3b8',
-      flex: 1,
+      color: active ? '#f8fafc' : '#94a3b8',
+      fontSize: 14,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
     }),
 
     newRoomBtn: {
-      margin: 8,
-      padding: '10px 12px',
-      border: '1px dashed #334155',
-      borderRadius: 10,
+      margin: 10,
+      padding: 12,
       background: 'transparent',
-      color: '#64748b',
-      fontSize: 12,
-      cursor: 'pointer',
+      border: '1px dashed #334155',
+      borderRadius: 12,
+      color: '#94a3b8',
     },
 
     sidebarFooter: {
@@ -405,13 +403,11 @@ export default function Chat() {
 
     logoutBtn: {
       width: '100%',
-      padding: 10,
+      padding: 12,
       background: 'transparent',
       border: '1px solid #334155',
-      borderRadius: 10,
-      color: '#94a3b8',
-      fontSize: 12,
-      cursor: 'pointer',
+      borderRadius: 12,
+      color: '#cbd5e1',
     },
 
     main: {
@@ -419,52 +415,41 @@ export default function Chat() {
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
+      width: '100%',
     },
 
     chatHeader: {
-      padding: '16px 24px',
+      padding: isMobile ? 16 : '16px 24px',
       borderBottom: '1px solid #334155',
+      background: '#1e293b',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      background: '#1e293b',
     },
 
     roomTitle: {
+      color: '#f8fafc',
       fontSize: 16,
       fontWeight: 600,
-      color: '#f8fafc',
     },
-
-    connDot: ok => ({
-      width: 8,
-      height: 8,
-      borderRadius: '50%',
-      background: ok ? '#22c55e' : '#ef4444',
-      display: 'inline-block',
-      marginRight: 6,
-    }),
 
     messagesArea: {
       flex: 1,
       overflowY: 'auto',
-      padding: '28px',
-      display: 'flex',
-      flexDirection: 'column',
+      padding: isMobile ? 16 : 28,
       background:
         'linear-gradient(to bottom, #0f172a, #020617)',
     },
 
     systemMsg: {
       textAlign: 'center',
-      fontSize: 12,
       color: '#64748b',
-      padding: '6px 0',
-      fontStyle: 'italic',
+      fontSize: 12,
+      padding: 8,
     },
 
     inputArea: {
-      padding: '18px 24px',
+      padding: isMobile ? 14 : 20,
       borderTop: '1px solid #334155',
       background: '#111827',
     },
@@ -472,9 +457,8 @@ export default function Chat() {
     inputRow: {
       display: 'flex',
       gap: 12,
-      alignItems: 'flex-end',
+      alignItems: 'stretch',
       maxWidth: 1100,
-      width: '100%',
       margin: '0 auto',
     },
 
@@ -484,128 +468,142 @@ export default function Chat() {
       border: '1px solid #334155',
       borderRadius: 16,
       padding: '14px 16px',
-      color: '#f8fafc',
-      fontFamily: 'inherit',
+      color: '#fff',
       fontSize: 14,
       resize: 'none',
       outline: 'none',
       minHeight: 52,
+      maxHeight: 140,
+      overflowY: 'auto',
     },
 
     sendBtn: {
-      background: '#0ea5e9',
-      border: 'none',
-      borderRadius: 16,
       width: 52,
       height: 52,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      cursor: 'pointer',
+      borderRadius: 16,
+      background:
+        'linear-gradient(135deg,#0ea5e9,#0284c7)',
       color: '#fff',
       flexShrink: 0,
-    },
-
-    inputHint: {
-      fontSize: 11,
-      color: '#64748b',
-      marginTop: 8,
-      textAlign: 'center',
     },
   }
 
   return (
     <div style={s.shell}>
-      <div style={s.sidebar}>
-        <div style={s.sidebarHeader}>
-          <span style={s.logo}>EnveChat</span>
+      {(!isMobile || mobileView === 'rooms') && (
+        <div style={s.sidebar}>
+          <div style={s.sidebarHeader}>
+            <span style={s.logo}>EnveChat</span>
 
-          <div style={s.userPill}>
-            <div style={s.avatar(username)}>
-              {getInitials(username)}
+            <div style={s.userPill}>
+              <div style={s.avatar(username)}>
+                {getInitials(username)}
+              </div>
+
+              <span>{username}</span>
             </div>
-            <span>{username}</span>
+          </div>
+
+          <div style={s.sectionLabel}>Rooms</div>
+
+          <div style={s.roomsList}>
+            {rooms.map(room => (
+              <div
+                key={room.id}
+                style={s.roomItem(
+                  activeRoom?.id === room.id
+                )}
+                onClick={() => {
+                  setActiveRoom(room)
+
+                  if (isMobile) {
+                    setMobileView('chat')
+                  }
+                }}
+              >
+                <span
+                  style={s.roomHash(
+                    activeRoom?.id === room.id
+                  )}
+                >
+                  #
+                </span>
+
+                <span
+                  style={s.roomName(
+                    activeRoom?.id === room.id
+                  )}
+                >
+                  {room.name}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <button
+            style={s.newRoomBtn}
+            onClick={() => setShowModal(true)}
+          >
+            + New Room
+          </button>
+
+          <div style={s.sidebarFooter}>
+            <button
+              style={s.logoutBtn}
+              onClick={logout}
+            >
+              Sign Out
+            </button>
           </div>
         </div>
+      )}
 
-        <div style={s.sectionLabel}>Rooms</div>
-
-        <div style={s.roomsList}>
-          {rooms.map(room => (
+      {(!isMobile || mobileView === 'chat') && (
+        <div style={s.main}>
+          <div style={s.chatHeader}>
             <div
-              key={room.id}
-              style={s.roomItem(
-                activeRoom?.id === room.id
-              )}
-              onClick={() => setActiveRoom(room)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+              }}
             >
-              <span
-                style={s.roomHash(
-                  activeRoom?.id === room.id
-                )}
-              >
-                #
-              </span>
+              {isMobile && (
+                <button
+                  onClick={() =>
+                    setMobileView('rooms')
+                  }
+                  style={{
+                    background: 'transparent',
+                    color: '#fff',
+                    marginRight: 12,
+                    fontSize: 20,
+                    padding: 0,
+                  }}
+                >
+                  ←
+                </button>
+              )}
 
-              <span
-                style={s.roomName(
-                  activeRoom?.id === room.id
-                )}
-              >
-                {room.name}
+              <span style={s.roomTitle}>
+                {activeRoom
+                  ? `# ${activeRoom.name}`
+                  : 'Select Room'}
               </span>
             </div>
-          ))}
-        </div>
 
-        <button
-          style={s.newRoomBtn}
-          onClick={() => setShowModal(true)}
-        >
-          + New Room
-        </button>
+            <span
+              style={{
+                fontSize: 12,
+                color: '#94a3b8',
+              }}
+            >
+              {connected
+                ? '🟢 Connected'
+                : '🔴 Connecting'}
+            </span>
+          </div>
 
-        <div style={s.sidebarFooter}>
-          <button
-            style={s.logoutBtn}
-            onClick={logout}
-          >
-            Sign out
-          </button>
-        </div>
-      </div>
-
-      <div style={s.main}>
-        <div style={s.chatHeader}>
-          <span style={s.roomTitle}>
-            {activeRoom
-              ? `# ${activeRoom.name}`
-              : 'Select a room'}
-          </span>
-
-          <span
-            style={{
-              fontSize: 12,
-              color: '#94a3b8',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            <span style={s.connDot(connected)} />
-            {connected
-              ? 'Connected'
-              : 'Connecting...'}
-          </span>
-        </div>
-
-        <div style={s.messagesArea}>
-          <div
-            style={{
-              maxWidth: 1100,
-              width: '100%',
-              margin: '0 auto',
-            }}
-          >
+          <div style={s.messagesArea}>
             {messages.map((msg, i) => {
               if (msg.type === 'JOIN') {
                 return (
@@ -614,17 +612,6 @@ export default function Chat() {
                     style={s.systemMsg}
                   >
                     {msg.senderUsername} joined
-                  </div>
-                )
-              }
-
-              if (msg.type === 'LEAVE') {
-                return (
-                  <div
-                    key={i}
-                    style={s.systemMsg}
-                  >
-                    {msg.senderUsername} left
                   </div>
                 )
               }
@@ -654,162 +641,37 @@ export default function Chat() {
             {typingUsers.length > 0 && (
               <div
                 style={{
-                  fontSize: 12,
                   color: '#64748b',
-                  padding: '6px 4px',
+                  fontSize: 12,
+                  paddingTop: 8,
                   fontStyle: 'italic',
                 }}
               >
-                {typingUsers.join(', ')}{' '}
-                {typingUsers.length === 1
-                  ? 'is'
-                  : 'are'}{' '}
-                typing...
+                {typingUsers.join(', ')} typing...
               </div>
             )}
 
             <div ref={messagesEndRef} />
           </div>
-        </div>
 
-        <div style={s.inputArea}>
-          <div style={s.inputRow}>
-            <textarea
-              style={s.msgInput}
-              value={inputText}
-              onChange={e => {
-                setInputText(e.target.value)
-                sendTypingEvent()
-              }}
-              onKeyDown={handleKeyDown}
-              placeholder="Type message..."
-              disabled={!connected}
-            />
-
-            <button
-              style={s.sendBtn}
-              onClick={sendMessage}
-            >
-              ➤
-            </button>
-          </div>
-
-          <div style={s.inputHint}>
-            Enter to send · Shift+Enter for new
-            line
-          </div>
-        </div>
-      </div>
-
-      {showModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.65)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 999,
-            backdropFilter: 'blur(6px)',
-          }}
-        >
-          <div
-            style={{
-              width: '90%',
-              maxWidth: 400,
-              background: '#111827',
-              border: '1px solid #334155',
-              borderRadius: 24,
-              padding: 28,
-              boxShadow:
-                '0 20px 60px rgba(0,0,0,0.5)',
-            }}
-          >
-            <h2
-              style={{
-                color: '#f8fafc',
-                fontSize: 22,
-                marginBottom: 8,
-                fontWeight: 700,
-              }}
-            >
-              Create Room
-            </h2>
-
-            <p
-              style={{
-                color: '#64748b',
-                fontSize: 13,
-                marginBottom: 20,
-              }}
-            >
-              Start a new realtime conversation
-              room.
-            </p>
-
-            <input
-              value={newRoomName}
-              onChange={e =>
-                setNewRoomName(e.target.value)
-              }
-              placeholder="room name"
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  createRoom()
-                }
-              }}
-              style={{
-                width: '100%',
-                padding: '14px 16px',
-                background: '#0f172a',
-                border: '1px solid #334155',
-                borderRadius: 14,
-                color: '#f8fafc',
-                fontSize: 14,
-                outline: 'none',
-                marginBottom: 22,
-                boxSizing: 'border-box',
-              }}
-            />
-
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: 12,
-              }}
-            >
-              <button
-                onClick={() =>
-                  setShowModal(false)
-                }
-                style={{
-                  padding: '12px 16px',
-                  background: 'transparent',
-                  border: '1px solid #334155',
-                  borderRadius: 12,
-                  color: '#94a3b8',
-                  cursor: 'pointer',
+          <div style={s.inputArea}>
+            <div style={s.inputRow}>
+              <textarea
+                style={s.msgInput}
+                value={inputText}
+                onChange={e => {
+                  setInputText(e.target.value)
+                  sendTypingEvent()
                 }}
-              >
-                Cancel
-              </button>
+                onKeyDown={handleKeyDown}
+                placeholder="Type message..."
+              />
 
               <button
-                onClick={createRoom}
-                style={{
-                  padding: '12px 18px',
-                  background:
-                    'linear-gradient(135deg,#0ea5e9,#0284c7)',
-                  border: 'none',
-                  borderRadius: 12,
-                  color: '#fff',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                }}
+                style={s.sendBtn}
+                onClick={sendMessage}
               >
-                Create Room
+                ➤
               </button>
             </div>
           </div>
