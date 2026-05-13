@@ -5,7 +5,7 @@ import { Client } from '@stomp/stompjs'
 import { API_BASE } from '../../config/api'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
-import { useChatRooms } from '../../hooks/useChatRooms'
+import  useChatRooms  from '../../hooks/useChatRooms'
 import ChatComposer from './ChatComposer'
 import ChatHeader from './ChatHeader'
 import {
