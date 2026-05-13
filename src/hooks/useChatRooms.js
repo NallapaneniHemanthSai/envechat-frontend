@@ -5,7 +5,7 @@ const API_BASE = 'https://envechat.onrender.com'
 let cachedRooms = []
 let alreadyFetched = false
 
-export function useChatRooms(token) {
+const useChatRooms = (token) => {
   const [rooms, setRooms] = useState(cachedRooms)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -63,3 +63,5 @@ export function useChatRooms(token) {
     error,
   }
 }
+
+export default useChatRooms
