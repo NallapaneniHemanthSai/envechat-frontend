@@ -1,61 +1,131 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
 import { API_BASE } from '../config/api'
 
 export function useWebSocket(roomId, onMessage) {
   const stompClient = useRef(null)
+  const subscriptionRef = useRef(null)
+
+  const [connected, setConnected] = useState(false)
 
   useEffect(() => {
     if (!roomId) return
 
-    const socket = new SockJS(`${API_BASE}/ws`)
+    let isMounted = true
 
     const client = new Client({
-      webSocketFactory: () => socket,
+      webSocketFactory: () => new SockJS(`${API_BASE}/ws`),
 
       connectHeaders: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
 
-      debug: (str) => {
-        console.log(str)
-      },
+      debug: () => {},
 
       reconnectDelay: 5000,
 
-      onConnect: () => {
-        console.log('Connected')
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
 
-        client.subscribe(`/topic/room/${roomId}`, (message) => {
-          const body = JSON.parse(message.body)
-          onMessage(body)
-        })
+      onConnect: () => {
+        if (!isMounted) return
+
+        console.log('✅ WebSocket Connected')
+
+        setConnected(true)
+
+        // remove old subscription
+        if (subscriptionRef.current) {
+          subscriptionRef.current.unsubscribe()
+          subscriptionRef.current = null
+        }
+
+        // create fresh subscription
+        subscriptionRef.current = client.subscribe(
+          `/topic/room/${roomId}`,
+          (message) => {
+            try {
+              const body = JSON.parse(message.body)
+
+              if (onMessage) {
+                onMessage(body)
+              }
+            } catch (err) {
+              console.error('Message parse error:', err)
+            }
+          },
+        )
+      },
+
+      onDisconnect: () => {
+        console.log('❌ WebSocket Disconnected')
+        setConnected(false)
       },
 
       onStompError: (frame) => {
-        console.error(frame)
+        console.error('STOMP ERROR:', frame)
+        setConnected(false)
+      },
+
+      onWebSocketError: (err) => {
+        console.error('WebSocket Error:', err)
+        setConnected(false)
       },
     })
 
     client.activate()
+
     stompClient.current = client
 
     return () => {
-      client.deactivate()
+      isMounted = false
+
+      setConnected(false)
+
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe()
+        subscriptionRef.current = null
+      }
+
+      if (client.active) {
+        client.deactivate()
+      }
+
+      stompClient.current = null
     }
-  }, [roomId, onMessage])
+  }, [roomId])
 
-  const sendMessage = (content) => {
-    if (!stompClient.current || !roomId) return
+  const sendMessage = useCallback(
+    (content) => {
+      if (!content?.trim()) return
 
-    stompClient.current.publish({
-      destination: `/app/chat/${roomId}`,
-      body: JSON.stringify({
-        content,
-      }),
-    })
+      if (!stompClient.current) {
+        console.error('No STOMP client')
+        return
+      }
+
+      if (!connected) {
+        console.error('WebSocket not connected')
+        return
+      }
+
+      try {
+        stompClient.current.publish({
+          destination: `/app/chat/${roomId}`,
+          body: JSON.stringify({
+            content: content.trim(),
+          }),
+        })
+      } catch (err) {
+        console.error('Send message error:', err)
+      }
+    },
+    [roomId, connected],
+  )
+
+  return {
+    sendMessage,
+    connected,
   }
-
-  return { sendMessage }
 }

@@ -2,12 +2,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
+
 import { API_BASE } from '../../config/api'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
-import  useChatRooms  from '../../hooks/useChatRooms'
+import useChatRooms from '../../hooks/useChatRooms'
+
 import ChatComposer from './ChatComposer'
 import ChatHeader from './ChatHeader'
+import ChatMessageList from './ChatMessageList'
+import ChatSidebar from './ChatSidebar'
+import CommandPalette from './CommandPalette'
+
 import {
   CreateRoomModal,
   LeaveRoomModal,
@@ -15,19 +21,24 @@ import {
   RoomSettingsModal,
   SearchModal,
 } from './ChatModals'
-import ChatMessageList from './ChatMessageList'
-import ChatSidebar from './ChatSidebar'
-import CommandPalette from './CommandPalette'
-import { ColdStartBanner, ReconnectBanner } from './ChatPrimitives'
+
+import {
+  ColdStartBanner,
+  ReconnectBanner,
+} from './ChatPrimitives'
 
 export default function ChatPage() {
   const navigate = useNavigate()
+
   const { token, username, logout } = useAuth()
   const { toast } = useToast()
 
-  const { rooms, setRooms, loading: roomsLoading, createRoom } = useChatRooms(token, {
-    onError: (m) => toast(m, 'danger'),
-  })
+  const {
+    rooms,
+    setRooms,
+    loading: roomsLoading,
+    createRoom,
+  } = useChatRooms(token)
 
   const [selectedRoomId, setSelectedRoomId] = useState(null)
   const [messages, setMessages] = useState([])
@@ -48,34 +59,46 @@ export default function ChatPage() {
   const [modalSearch, setModalSearch] = useState(false)
   const [modalRoom, setModalRoom] = useState(false)
   const [modalLeave, setModalLeave] = useState(false)
+
   const [newRoomName, setNewRoomName] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [commandOpen, setCommandOpen] = useState(false)
 
   const stompRef = useRef(null)
   const subRef = useRef(null)
+
   const typingTimeouts = useRef({})
   const coldShownRef = useRef(false)
   const bannerTimerRef = useRef(null)
 
   const activeRoom = useMemo(() => {
     if (!rooms.length) return null
+
     if (selectedRoomId != null) {
-      const found = rooms.find((r) => String(r.id) === String(selectedRoomId))
+      const found = rooms.find(
+        (r) => String(r.id) === String(selectedRoomId),
+      )
+
       if (found) return found
     }
+
     return rooms[0]
   }, [rooms, selectedRoomId])
 
   useEffect(() => {
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       if (!connected && !coldShownRef.current) {
         coldShownRef.current = true
+
         setShowColdBanner(true)
-        bannerTimerRef.current = setInterval(() => setColdElapsed((e) => e + 1), 1000)
+
+        bannerTimerRef.current = setInterval(() => {
+          setColdElapsed((e) => e + 1)
+        }, 1000)
       }
     }, 5000)
-    return () => clearTimeout(t)
+
+    return () => clearTimeout(timer)
   }, [connected])
 
   useEffect(() => {
@@ -86,113 +109,234 @@ export default function ChatPage() {
     }
   }, [connected])
 
-  const handleTyping = useCallback((msg) => {
-    if (msg.senderUsername === username) return
-    const u = msg.senderUsername
-    setTypingUsers((prev) => [...new Set([...prev, u])])
-    clearTimeout(typingTimeouts.current[u])
-    typingTimeouts.current[u] = setTimeout(() => {
-      setTypingUsers((prev) => prev.filter((x) => x !== u))
-    }, 2500)
-  }, [username])
+  const handleTyping = useCallback(
+    (msg) => {
+      if (msg.senderUsername === username) return
+
+      const user = msg.senderUsername
+
+      setTypingUsers((prev) => [...new Set([...prev, user])])
+
+      clearTimeout(typingTimeouts.current[user])
+
+      typingTimeouts.current[user] = setTimeout(() => {
+        setTypingUsers((prev) =>
+          prev.filter((x) => x !== user),
+        )
+      }, 2500)
+    },
+    [username],
+  )
 
   const sendTypingEvent = useCallback(() => {
-    if (!stompRef.current || !activeRoom) return
-    stompRef.current.publish({
-      destination: `/app/chat/${activeRoom.id}`,
-      body: JSON.stringify({ type: 'TYPING', senderUsername: username }),
-    })
-  }, [activeRoom, username])
+    if (!stompRef.current) return
+    if (!connected) return
+    if (!activeRoom) return
+
+    try {
+      stompRef.current.publish({
+        destination: `/app/chat/${activeRoom.id}`,
+        body: JSON.stringify({
+          type: 'TYPING',
+          senderUsername: username,
+        }),
+      })
+    } catch (err) {
+      console.error(err)
+    }
+  }, [connected, activeRoom, username])
 
   useEffect(() => {
     if (!token) return
+
     setWsPhase('connecting')
+
     const client = new Client({
-      webSocketFactory: () => new SockJS(`${API_BASE}/ws`),
-      connectHeaders: { Authorization: `Bearer ${token}` },
-      reconnectDelay: 4000,
+      webSocketFactory: () =>
+        new SockJS(`${API_BASE}/ws`),
+
+      connectHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
+
+      reconnectDelay: 5000,
+
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
+
+      debug: () => {},
+
       onConnect: () => {
+        console.log('Connected')
+
+        stompRef.current = client
+
         setConnected(true)
         setWsPhase('connected')
-        stompRef.current = client
       },
+
       onDisconnect: () => {
+        console.log('Disconnected')
+
         setConnected(false)
         setWsPhase('disconnected')
+
         stompRef.current = null
       },
+
       onStompError: (frame) => {
-        console.error('STOMP', frame)
+        console.error(frame)
+
+        setConnected(false)
         setWsPhase('error')
+
         toast('Realtime connection error', 'danger')
       },
+
+      onWebSocketError: (err) => {
+        console.error(err)
+
+        setConnected(false)
+        setWsPhase('error')
+      },
     })
+
     client.activate()
+
     return () => {
-      subRef.current?.unsubscribe()
-      subRef.current = null
-      client.deactivate()
+      if (subRef.current) {
+        subRef.current.unsubscribe()
+        subRef.current = null
+      }
+
+      if (client.active) {
+        client.deactivate()
+      }
+
       stompRef.current = null
+
       setConnected(false)
       setWsPhase('idle')
     }
   }, [token, clientKey, toast])
 
   useEffect(() => {
-    if (!connected || !activeRoom || !stompRef.current) return
-    subRef.current?.unsubscribe()
-    setMessages([])
-
-    fetch(`${API_BASE}/api/chat/${activeRoom.id}/history`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error('History failed')
-        return r.json()
-      })
-      .then(setMessages)
-      .catch(() => {
-        toast('Could not load message history', 'danger')
-        setMessages([])
-      })
+    if (!connected) return
+    if (!activeRoom) return
+    if (!stompRef.current) return
 
     const client = stompRef.current
-    subRef.current = client.subscribe(`/topic/room/${activeRoom.id}`, (frame) => {
-      const msg = JSON.parse(frame.body)
-      if (msg.type === 'TYPING') {
-        handleTyping(msg)
-        return
+
+    if (subRef.current) {
+      subRef.current.unsubscribe()
+      subRef.current = null
+    }
+
+    setMessages([])
+
+    const loadHistory = async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE}/api/chat/${activeRoom.id}/history`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
+
+        if (!res.ok) {
+          throw new Error('Failed history')
+        }
+
+        const data = await res.json()
+
+        setMessages(data)
+      } catch (err) {
+        console.error(err)
+
+        toast(
+          'Could not load message history',
+          'danger',
+        )
+
+        setMessages([])
       }
-      if (msg.type === 'CHAT' && msg.senderUsername === username) {
-        setMessages((prev) => {
-          const idx = prev.findIndex(
-            (m) =>
-              m._optimistic &&
-              m.content === msg.content &&
-              m.senderUsername === msg.senderUsername,
-          )
-          if (idx !== -1) {
-            const copy = [...prev]
-            copy[idx] = { ...msg }
-            return copy
+    }
+
+    loadHistory()
+
+    const subscription = client.subscribe(
+      `/topic/room/${activeRoom.id}`,
+      (frame) => {
+        try {
+          const msg = JSON.parse(frame.body)
+
+          if (msg.type === 'TYPING') {
+            handleTyping(msg)
+            return
           }
-          return [...prev, msg]
-        })
-        return
-      }
-      setMessages((prev) => [...prev, msg])
-    })
+
+          setMessages((prev) => {
+            const optimisticIndex = prev.findIndex(
+              (m) =>
+                m._optimistic &&
+                m.content === msg.content &&
+                m.senderUsername === msg.senderUsername,
+            )
+
+            if (optimisticIndex !== -1) {
+              const updated = [...prev]
+
+              updated[optimisticIndex] = {
+                ...msg,
+                _optimistic: false,
+              }
+
+              return updated
+            }
+
+            const exists = prev.some(
+              (m) =>
+                m.id &&
+                msg.id &&
+                String(m.id) === String(msg.id),
+            )
+
+            if (exists) return prev
+
+            return [...prev, msg]
+          })
+        } catch (err) {
+          console.error(err)
+        }
+      },
+    )
+
+    subRef.current = subscription
 
     client.publish({
       destination: `/app/chat/${activeRoom.id}/join`,
-      body: JSON.stringify({ type: 'JOIN', senderUsername: username }),
+      body: JSON.stringify({
+        type: 'JOIN',
+        senderUsername: username,
+      }),
     })
 
     return () => {
-      subRef.current?.unsubscribe()
-      subRef.current = null
+      if (subRef.current) {
+        subRef.current.unsubscribe()
+        subRef.current = null
+      }
     }
-  }, [connected, activeRoom, token, username, handleTyping, toast])
+  }, [
+    connected,
+    activeRoom?.id,
+    token,
+    username,
+    toast,
+    handleTyping,
+  ])
 
   const reconnectNow = useCallback(() => {
     setClientKey((k) => k + 1)
@@ -201,8 +345,16 @@ export default function ChatPage() {
 
   const sendMessage = useCallback(() => {
     const text = inputText.trim()
-    if (!text || !stompRef.current || !activeRoom) return
-    const optimistic = {
+
+    if (!text) return
+    if (!connected) return
+    if (!activeRoom) return
+    if (!stompRef.current) return
+
+    const optimisticId = Date.now()
+
+    const optimisticMessage = {
+      id: optimisticId,
       content: text,
       type: 'CHAT',
       senderUsername: username,
@@ -210,29 +362,66 @@ export default function ChatPage() {
       roomId: String(activeRoom.id),
       _optimistic: true,
     }
-    setMessages((prev) => [...prev, optimistic])
+
+    setMessages((prev) => [
+      ...prev,
+      optimisticMessage,
+    ])
+
     setInputText('')
-    setSending(true)
-    window.setTimeout(() => setSending(false), 600)
-    stompRef.current.publish({
-      destination: `/app/chat/${activeRoom.id}`,
-      body: JSON.stringify({
-        content: text,
-        type: 'CHAT',
-        senderUsername: username,
-        roomId: String(activeRoom.id),
-        replyToId: replyTo?.id,
-      }),
-    })
     setReplyTo(null)
-  }, [inputText, activeRoom, username, replyTo])
+    setSending(true)
+
+    try {
+      stompRef.current.publish({
+        destination: `/app/chat/${activeRoom.id}`,
+
+        body: JSON.stringify({
+          content: text,
+          type: 'CHAT',
+          senderUsername: username,
+          roomId: String(activeRoom.id),
+          replyToId: replyTo?.id || null,
+        }),
+      })
+
+      setTimeout(() => {
+        setSending(false)
+      }, 300)
+    } catch (err) {
+      console.error(err)
+
+      setSending(false)
+
+      setMessages((prev) =>
+        prev.filter((m) => m.id !== optimisticId),
+      )
+
+      toast('Failed to send message', 'danger')
+    }
+  }, [
+    inputText,
+    connected,
+    activeRoom,
+    username,
+    replyTo,
+    toast,
+  ])
 
   const onToggleReaction = useCallback((mk, em) => {
     setReactions((prev) => {
       const cur = { ...(prev[mk] || {}) }
+
       cur[em] = cur[em] > 0 ? 0 : 1
-      const cleaned = Object.fromEntries(Object.entries(cur).filter(([, v]) => v > 0))
-      return { ...prev, [mk]: cleaned }
+
+      const cleaned = Object.fromEntries(
+        Object.entries(cur).filter(([, v]) => v > 0),
+      )
+
+      return {
+        ...prev,
+        [mk]: cleaned,
+      }
     })
   }, [])
 
@@ -243,17 +432,31 @@ export default function ChatPage() {
 
   const searchResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
+
     if (!q) return []
+
     return messages
-      .filter((m) => m.type === 'CHAT' && m.content?.toLowerCase().includes(q))
+      .filter(
+        (m) =>
+          m.type === 'CHAT' &&
+          m.content?.toLowerCase().includes(q),
+      )
       .slice(0, 40)
   }, [messages, searchQuery])
 
   const memberCount = useMemo(() => {
     const ids = new Set(
-      messages.filter((m) => m.type === 'CHAT' && m.senderUsername).map((m) => m.senderUsername),
+      messages
+        .filter(
+          (m) =>
+            m.type === 'CHAT' &&
+            m.senderUsername,
+        )
+        .map((m) => m.senderUsername),
     )
+
     if (username) ids.add(username)
+
     return ids.size || null
   }, [messages, username])
 
@@ -279,7 +482,10 @@ export default function ChatPage() {
         id: 'scroll',
         label: 'Jump to latest',
         hint: 'Chat',
-        run: () => window.dispatchEvent(new CustomEvent('envechat:scroll-bottom')),
+        run: () =>
+          window.dispatchEvent(
+            new CustomEvent('envechat:scroll-bottom'),
+          ),
       },
       {
         id: 'reconnect',
@@ -293,10 +499,12 @@ export default function ChatPage() {
   useEffect(() => {
     const onKey = (e) => {
       const meta = e.metaKey || e.ctrlKey
+
       if (meta && e.key.toLowerCase() === 'k') {
         e.preventDefault()
         setCommandOpen((o) => !o)
       }
+
       if (e.key === 'Escape') {
         setCommandOpen(false)
         setModalCreate(false)
@@ -306,30 +514,46 @@ export default function ChatPage() {
         setModalLeave(false)
       }
     }
+
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+
+    return () => {
+      window.removeEventListener('keydown', onKey)
+    }
   }, [])
 
   const confirmCreate = async () => {
     const res = await createRoom(newRoomName)
+
     if (res.ok) {
       setSelectedRoomId(res.room.id)
       setNewRoomName('')
       setModalCreate(false)
+
       toast('Channel created', 'success')
-    } else toast(res.error || 'Failed', 'danger')
+    } else {
+      toast(res.error || 'Failed', 'danger')
+    }
   }
 
   const leaveLocal = () => {
     const id = activeRoom?.id
+
     setModalLeave(false)
     setModalRoom(false)
+
     setRooms((prev) => {
       const next = prev.filter((r) => r.id !== id)
+
       const first = next[0] ?? null
-      queueMicrotask(() => setSelectedRoomId(first ? first.id : null))
+
+      queueMicrotask(() =>
+        setSelectedRoomId(first ? first.id : null),
+      )
+
       return next
     })
+
     toast('Removed channel locally', 'default')
   }
 
@@ -339,7 +563,9 @@ export default function ChatPage() {
         <ChatSidebar
           rooms={rooms}
           activeRoom={activeRoom}
-          onSelectRoom={(room) => setSelectedRoomId(room.id)}
+          onSelectRoom={(room) =>
+            setSelectedRoomId(room.id)
+          }
           username={username}
           connected={connected}
           wsPhase={wsPhase}
@@ -348,16 +574,30 @@ export default function ChatPage() {
           onOpenProfile={() => setModalProfile(true)}
           onOpenSearch={() => setModalSearch(true)}
           mobileOpen={mobileSidebar}
-          onCloseMobile={() => setMobileSidebar(false)}
+          onCloseMobile={() =>
+            setMobileSidebar(false)
+          }
           memberCount={memberCount}
         />
 
         <section className="relative flex min-w-0 flex-1 flex-col border-l border-white/[0.04] bg-gradient-to-b from-[#050a14] to-[#040d1a] md:border-l-0">
           {showColdBanner && (
-            <ColdStartBanner elapsed={coldElapsed} onDismiss={() => setShowColdBanner(false)} />
+            <ColdStartBanner
+              elapsed={coldElapsed}
+              onDismiss={() =>
+                setShowColdBanner(false)
+              }
+            />
           )}
+
           <ReconnectBanner
-            visible={!connected && (wsPhase === 'disconnected' || wsPhase === 'error')}
+            visible={
+              !connected &&
+              (
+                wsPhase === 'disconnected' ||
+                wsPhase === 'error'
+              )
+            }
             phase={wsPhase}
             onRetry={reconnectNow}
           />
@@ -366,15 +606,26 @@ export default function ChatPage() {
             activeRoom={activeRoom}
             connected={connected}
             onMenu={() => setCommandOpen(true)}
-            onOpenRoomSettings={() => setModalRoom(true)}
+            onOpenRoomSettings={() =>
+              setModalRoom(true)
+            }
             mobileNav={
               <button
                 type="button"
                 className="inline-flex rounded-lg border border-white/10 p-2 text-slate-300 hover:bg-white/5 md:hidden"
-                onClick={() => setMobileSidebar(true)}
+                onClick={() =>
+                  setMobileSidebar(true)
+                }
                 aria-label="Open channels"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <line x1="3" y1="6" x2="21" y2="6" />
                   <line x1="3" y1="12" x2="21" y2="12" />
                   <line x1="3" y1="18" x2="21" y2="18" />
@@ -420,7 +671,13 @@ export default function ChatPage() {
           setNewRoomName('')
         }}
       />
-      <ProfileModal open={modalProfile} username={username} onClose={() => setModalProfile(false)} />
+
+      <ProfileModal
+        open={modalProfile}
+        username={username}
+        onClose={() => setModalProfile(false)}
+      />
+
       <SearchModal
         open={modalSearch}
         query={searchQuery}
@@ -431,6 +688,7 @@ export default function ChatPage() {
           setSearchQuery('')
         }}
       />
+
       <RoomSettingsModal
         open={modalRoom}
         roomName={activeRoom?.name || ''}
@@ -440,6 +698,7 @@ export default function ChatPage() {
           setModalLeave(true)
         }}
       />
+
       <LeaveRoomModal
         open={modalLeave}
         roomName={activeRoom?.name || ''}
@@ -448,7 +707,10 @@ export default function ChatPage() {
       />
 
       {commandOpen && (
-        <CommandPalette onClose={() => setCommandOpen(false)} actions={paletteActions} />
+        <CommandPalette
+          onClose={() => setCommandOpen(false)}
+          actions={paletteActions}
+        />
       )}
 
       {roomsLoading && (
