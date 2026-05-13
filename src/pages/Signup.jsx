@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-
-const API_BASE = 'https://envechat.onrender.com'
+import { API_BASE } from '../config/api'
 
 export default function Signup() {
   const [form, setForm] = useState({ username: '', email: '', password: '' })

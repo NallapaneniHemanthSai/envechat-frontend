@@ -1,7 +1,8 @@
 import axios from 'axios'
+import { API_BASE } from '../config/api'
 
 const API = axios.create({
-  baseURL: "https://envechat.onrender.com",
+  baseURL: API_BASE,
 })
 
 API.interceptors.request.use((config) => {
@@ -18,6 +19,16 @@ API.interceptors.request.use((config) => {
 
   return config
 })
+
+API.interceptors.response.use(
+  (r) => r,
+  (err) => {
+    const msg =
+      err?.response?.data?.message || err?.message || 'Request failed'
+    console.warn('[api]', msg)
+    return Promise.reject(err)
+  },
+)
 
 export const signup = (data) => API.post('/api/auth/signup', data)
 export const login = (data) => API.post('/api/auth/login', data)

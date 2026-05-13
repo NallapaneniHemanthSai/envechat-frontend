@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
+import { API_BASE } from '../config/api'
 
 export function useWebSocket(roomId, onMessage) {
   const stompClient = useRef(null)
@@ -8,13 +9,13 @@ export function useWebSocket(roomId, onMessage) {
   useEffect(() => {
     if (!roomId) return
 
-    const socket = new SockJS('https://envechat.onrender.com/ws')
+    const socket = new SockJS(`${API_BASE}/ws`)
 
     const client = new Client({
       webSocketFactory: () => socket,
 
       connectHeaders: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
 
       debug: (str) => {
@@ -34,7 +35,7 @@ export function useWebSocket(roomId, onMessage) {
 
       onStompError: (frame) => {
         console.error(frame)
-      }
+      },
     })
 
     client.activate()
@@ -51,8 +52,8 @@ export function useWebSocket(roomId, onMessage) {
     stompClient.current.publish({
       destination: `/app/chat/${roomId}`,
       body: JSON.stringify({
-        content
-      })
+        content,
+      }),
     })
   }
 

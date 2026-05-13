@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_BASE } from "../config/api";
 
 export default function ServerWakeup({ onReady }) {
   const [seconds, setSeconds] = useState(0);
@@ -24,14 +25,14 @@ export default function ServerWakeup({ onReady }) {
 
     const checkServer = async () => {
       try {
-        const res = await fetch("https://envechat.onrender.com/api/auth/ping");
+        const res = await fetch(`${API_BASE}/api/auth/ping`);
         if (res.ok) {
           clearInterval(timer);
           clearInterval(dotTimer);
           clearInterval(statusTimer);
           onReady();
         }
-      } catch (err) {
+      } catch {
         // Server still sleeping
       }
     };

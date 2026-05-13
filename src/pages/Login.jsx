@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-
-const API_BASE = 'https://envechat.onrender.com'
+import { API_BASE } from '../config/api'
+import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
@@ -11,11 +11,7 @@ export default function Login() {
   const [showCold, setShowCold] = useState(false)
   const [coldElapsed, setColdElapsed] = useState(0)
   const navigate = useNavigate()
-
-  // If already logged in, redirect
-  useEffect(() => {
-    if (localStorage.getItem('token')) navigate('/chat')
-  }, [navigate])
+  const { login } = useAuth()
 
   const handleSubmit = async () => {
     if (!form.email || !form.password) { setError('Please fill in all fields.'); return }
@@ -32,9 +28,8 @@ export default function Login() {
       setShowCold(false)
       if (!res.ok) { setError('Invalid email or password.'); return }
       const data = await res.json()
-      localStorage.setItem('token', data.token)
-      localStorage.setItem('username', data.username)
-      navigate('/chat')
+      login(data.token, data.username)
+      navigate('/chat', { replace: true })
     } catch {
       clearTimeout(timeoutId)
       setShowCold(false)

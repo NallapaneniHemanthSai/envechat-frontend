@@ -1,6 +1,16 @@
+@import "tailwindcss";
+
 /* ═══════════════════════════════════════════════════════════
    EnveChat — Discord-Inspired Design System
    ═══════════════════════════════════════════════════════════ */
+
+@theme {
+  --font-sans: var(--font-primary);
+  --color-ec-bg-deep: #040d1a;
+  --color-ec-bg-panel: #07111f;
+  --color-ec-accent: #3b82f6;
+  --color-ec-accent-soft: rgba(59, 130, 246, 0.14);
+}
 
 :root {
   /* ── Discord Dark Theme Palette ── */
@@ -238,4 +248,21 @@ button {
 @keyframes messageSlide {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Shared scrollbars for Tailwind chat surfaces */
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.28) transparent;
+}
+.custom-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+}
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.35);
 }
