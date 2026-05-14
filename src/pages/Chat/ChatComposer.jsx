@@ -35,9 +35,9 @@ export default function ChatComposer({
   return (
     <div className="shrink-0 border-t border-white/[0.06] bg-[#050c14]/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md md:px-5 md:pb-4">
       {replyTo && (
-        <div className="mb-2 flex items-center justify-between gap-2 rounded-lg border border-blue-500/20 bg-blue-500/10 px-3 py-2 text-xs text-slate-300">
+        <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-blue-500/20 bg-blue-500/5 px-4 py-2.5 text-[12px] font-medium text-slate-300">
           <div className="min-w-0">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-blue-300/90">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">
               Replying to {replyTo.sender}
             </span>
             <p className="truncate text-slate-400">{replyTo.excerpt}</p>
@@ -53,9 +53,9 @@ export default function ChatComposer({
         </div>
       )}
       <div
-        className={`flex items-end gap-2 rounded-2xl border bg-[#0a1624]/90 px-2 py-2 shadow-inner transition md:px-3 ${
-          focused ? 'border-blue-500/35 ring-1 ring-blue-500/20' : 'border-white/10'
-        } ${disabled ? 'opacity-55' : ''}`}
+        className={`flex items-end gap-2 rounded-2xl border bg-[#0a1624]/80 px-3 py-2 shadow-sm transition-all duration-200 ${
+          focused ? 'border-blue-500/40 ring-2 ring-blue-500/10 bg-[#0a1624]' : 'border-white/10'
+        } ${disabled ? 'opacity-50' : ''}`}
       >
         <div className="flex shrink-0 flex-col gap-1 pb-1">
           <button
@@ -73,13 +73,13 @@ export default function ChatComposer({
           ref={taRef}
           rows={1}
           value={value}
-            onChange={(e) => onChange(e.target.value.slice(0, MAX_LEN))}
+          onChange={(e) => onChange(e.target.value.slice(0, MAX_LEN))}
           onKeyDown={handleKeyDown}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           disabled={disabled}
           placeholder={roomName ? `Message #${roomName}…` : 'Select a channel'}
-          className="custom-scroll max-h-40 min-h-[44px] w-full resize-none bg-transparent py-2.5 text-[13.5px] leading-relaxed text-slate-100 placeholder:text-slate-600 focus:outline-none disabled:cursor-not-allowed"
+          className="custom-scroll max-h-40 min-h-[44px] w-full resize-none bg-transparent py-2.5 text-[14px] font-medium leading-relaxed text-white placeholder:text-slate-600 focus:outline-none disabled:cursor-not-allowed"
         />
         <div className="flex shrink-0 flex-col items-end gap-1 pb-1">
           <button

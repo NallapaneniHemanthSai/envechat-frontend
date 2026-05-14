@@ -53,24 +53,24 @@ export default function ChatSidebar({
   const shell = (
     <>
       <div className="border-b border-white/[0.06] px-3 pb-3 pt-4">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 shadow-md">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
           </div>
-          <span className="text-[15px] font-bold tracking-tight text-slate-100">EnveChat</span>
+          <span className="text-lg font-extrabold tracking-tight text-white">EnveChat</span>
         </div>
         <button
           type="button"
           onClick={onOpenProfile}
-          className="mt-3 flex w-full items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.04] p-2.5 text-left transition hover:border-white/15 hover:bg-white/[0.06]"
+          className="mt-4 flex w-full items-center gap-3 rounded-xl border border-white/5 bg-white/[0.03] p-3 text-left transition hover:bg-white/[0.06] hover:border-white/10"
         >
-          <Avatar name={username} avatarUrl={avatarUrl} size={30} radius={8} />
+          <Avatar name={username} avatarUrl={avatarUrl} size={34} radius={10} />
           <div className="min-w-0 flex-1">
-            <div className="truncate text-xs font-semibold text-slate-200">{dn(username)}</div>
-            <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-emerald-400/90">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <div className="truncate text-sm font-bold text-slate-100">{dn(username)}</div>
+            <div className="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
               Online
             </div>
           </div>
