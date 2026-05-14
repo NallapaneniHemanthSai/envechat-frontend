@@ -53,8 +53,21 @@ export default function ChatSidebar({
   const shell = (
     <>
       <div className="flex h-12 items-center justify-between px-4 shadow-sm transition hover:bg-white/[0.05] cursor-pointer group/header border-b border-black/20">
-        <h2 className="truncate font-bold text-[15px] text-white">Gaming Hub</h2>
-        <svg className="text-slate-300 transition group-hover/header:text-slate-100" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        <div className="min-w-0">
+          <h2 className="truncate font-bold text-[15px] text-white">EnveChat</h2>
+          <p className="mt-0.5 truncate text-[11px] text-slate-500">
+            {connected ? 'Realtime online' : wsPhase === 'connecting' ? 'Connecting…' : 'Realtime offline'}
+            {memberCount ? ` · ${memberCount} members` : ''}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onOpenSearch}
+          className="rounded p-1.5 text-slate-400 transition hover:bg-white/10 hover:text-slate-100"
+          title="Search messages"
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </button>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -126,7 +139,7 @@ export default function ChatSidebar({
           </div>
           <div className="min-w-0 flex-1 text-left">
             <div className="truncate text-[13px] font-bold text-slate-100">{dn(username)}</div>
-            <div className="truncate text-[11px] text-slate-400">#0001</div>
+            <div className="truncate text-[11px] text-slate-400">{connected ? 'Online' : 'Offline'}</div>
           </div>
         </button>
         <div className="flex items-center">

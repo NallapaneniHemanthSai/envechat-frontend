@@ -2,50 +2,59 @@ import { Avatar } from './ChatPrimitives'
 import { displayName } from './chatUtils'
 
 export default function MemberSidebar({ users = [], currentUsername }) {
-  // Mock users for visual scaling
-  const mockMembers = [
-    { username: 'Alex', status: 'online' },
-    { username: 'Sarah', status: 'idle' },
-    { username: 'Mike', status: 'dnd' },
-    { username: 'Emily', status: 'offline' },
-    { username: 'Jake', status: 'online' },
-  ]
+  const memberMap = new Map()
 
-  // Deduplicate and combine
-  const allMembers = [
-    { username: currentUsername, status: 'online' },
-    ...mockMembers.filter(m => m.username !== currentUsername)
-  ]
+  users
+    .filter((user) => user?.username)
+    .forEach((user) => {
+      memberMap.set(user.username, {
+        username: user.username,
+        status: user.status || 'unknown',
+      })
+    })
 
-  const online = allMembers.filter(m => m.status !== 'offline')
-  const offline = allMembers.filter(m => m.status === 'offline')
+  if (currentUsername && !memberMap.has(currentUsername)) {
+    memberMap.set(currentUsername, {
+      username: currentUsername,
+      status: 'unknown',
+    })
+  }
+
+  const members = [...memberMap.values()]
+  const online = members.filter((m) => m.status === 'online')
+  const other = members.filter((m) => m.status !== 'online')
 
   return (
     <aside className="hidden w-[240px] shrink-0 flex-col bg-[#2b2d31] overflow-hidden lg:flex">
       <div className="custom-scroll flex-1 space-y-4 overflow-y-auto px-3 py-4">
-        <div>
-          <h3 className="px-2 pb-2 text-[12px] font-bold uppercase tracking-wider text-slate-500">
-            Online — {online.length}
-          </h3>
-          <div className="space-y-0.5">
-            {online.map((u) => (
-              <MemberRow key={u.username} user={u} />
-            ))}
-          </div>
-        </div>
-
-        {offline.length > 0 && (
+        {online.length > 0 && (
           <div>
             <h3 className="px-2 pb-2 text-[12px] font-bold uppercase tracking-wider text-slate-500">
-              Offline — {offline.length}
+              Online — {online.length}
             </h3>
             <div className="space-y-0.5">
-              {offline.map((u) => (
+              {online.map((u) => (
                 <MemberRow key={u.username} user={u} />
               ))}
             </div>
           </div>
         )}
+
+        <div>
+          <h3 className="px-2 pb-2 text-[12px] font-bold uppercase tracking-wider text-slate-500">
+            Members — {other.length}
+          </h3>
+          <div className="space-y-0.5">
+            {other.map((u) => (
+              <MemberRow key={u.username} user={u} />
+            ))}
+            {members.length === 0 && (
+              <p className="px-2 py-2 text-xs leading-5 text-slate-500">
+                Member presence will appear when the backend sends user activity.
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </aside>
   )
@@ -57,6 +66,7 @@ function MemberRow({ user }) {
     idle: 'bg-status-idle',
     dnd: 'bg-status-dnd',
     offline: 'bg-status-offline',
+    unknown: 'bg-status-offline',
   }
 
   return (

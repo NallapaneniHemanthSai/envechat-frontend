@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { API_BASE } from '../config/api'
 import { useAuth } from '../context/AuthContext'
 
@@ -11,7 +11,9 @@ export default function Login() {
   const [showCold, setShowCold] = useState(false)
   const [coldElapsed, setColdElapsed] = useState(0)
   const navigate = useNavigate()
+  const location = useLocation()
   const { login } = useAuth()
+  const redirectTo = location.state?.from?.pathname || '/chat'
 
   const handleSubmit = async () => {
     if (!form.email || !form.password) { setError('Please fill in all fields.'); return }
@@ -29,7 +31,7 @@ export default function Login() {
       if (!res.ok) { setError('Invalid email or password.'); return }
       const data = await res.json()
       login(data.token, data.username)
-      navigate('/chat', { replace: true })
+      navigate(redirectTo, { replace: true })
     } catch {
       clearTimeout(timeoutId)
       setShowCold(false)

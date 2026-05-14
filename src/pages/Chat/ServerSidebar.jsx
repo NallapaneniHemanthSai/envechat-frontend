@@ -1,11 +1,6 @@
-import { motion } from 'framer-motion'
-
 export default function ServerSidebar() {
   const servers = [
-    { id: 'me', icon: 'E', color: 'bg-brand-500', name: 'Direct Messages', active: true },
-    { id: 's1', icon: 'G', color: 'bg-slate-700', name: 'Gaming Hub' },
-    { id: 's2', icon: 'D', color: 'bg-slate-700', name: 'Dev Corner' },
-    { id: 's3', icon: 'M', color: 'bg-slate-700', name: 'Movie Night' },
+    { id: 'workspace', icon: 'E', name: 'EnveChat', active: true },
   ]
 
   return (
@@ -24,8 +19,8 @@ export default function ServerSidebar() {
             <button
               title={s.name}
               className={`flex h-12 w-12 items-center justify-center transition-all duration-300 ${
-                s.active 
-                  ? 'rounded-[16px] bg-brand-500 text-white' 
+                s.active
+                  ? 'rounded-[16px] bg-brand-500 text-white'
                   : 'rounded-[24px] bg-[#313338] text-slate-300 group-hover:rounded-[16px] group-hover:bg-brand-500 group-hover:text-white'
               }`}
             >

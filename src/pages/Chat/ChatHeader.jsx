@@ -32,8 +32,9 @@ export default function ChatHeader({
             </h1>
           </div>
           {activeRoom && (
-            <p className="mt-0.5 truncate text-[12px] font-medium text-slate-500">
-              The start of something great.
+            <p className="mt-0.5 flex items-center gap-1.5 truncate text-[12px] font-medium text-slate-500">
+              <span className={`h-1.5 w-1.5 rounded-full ${connected ? 'bg-green-400' : 'bg-amber-400'}`} />
+              {connected ? 'Realtime connected' : 'Reconnecting realtime'}
             </p>
           )}
         </div>
@@ -56,11 +57,13 @@ export default function ChatHeader({
         </div>
 
         <div className="relative hidden lg:block">
-          <input 
-            type="text" 
-            placeholder="Search"
-            className="h-6 w-36 rounded bg-[#1e1f22] px-2 text-[12px] font-medium text-slate-200 outline-none transition-all focus:w-60"
-          />
+          <button
+            type="button"
+            onClick={onMenu}
+            className="h-7 w-36 rounded bg-[#1e1f22] px-2 text-left text-[12px] font-medium text-slate-500 outline-none transition-all hover:bg-black/30 hover:text-slate-300 focus:w-60"
+          >
+            Search
+          </button>
           <svg className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
         </div>
 

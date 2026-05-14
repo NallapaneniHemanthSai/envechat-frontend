@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
 const AuthContext = createContext(null)
 
@@ -25,6 +25,11 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('avatarUrl')
     setAuth({ token: null, username: null, avatarUrl: null })
   }, [])
+
+  useEffect(() => {
+    window.addEventListener('envechat:auth-expired', logout)
+    return () => window.removeEventListener('envechat:auth-expired', logout)
+  }, [logout])
 
   const setAvatar = useCallback((url) => {
     if (url) {

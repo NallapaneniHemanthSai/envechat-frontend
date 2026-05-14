@@ -60,9 +60,10 @@ export default function ChatComposer({
         <div className="flex shrink-0 items-center gap-1 pb-1">
           <button
             type="button"
-            disabled={disabled}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-600 text-white transition hover:bg-slate-500 disabled:opacity-40"
-            title="Upload a file"
+            disabled
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-600 text-white opacity-40"
+            title="File uploads need backend support"
+            aria-disabled="true"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
@@ -80,10 +81,10 @@ export default function ChatComposer({
           className="custom-scroll max-h-40 min-h-[44px] w-full resize-none bg-transparent py-2.5 text-[14px] font-medium leading-relaxed text-white placeholder:text-slate-600 focus:outline-none disabled:cursor-not-allowed"
         />
         <div className="flex shrink-0 items-center gap-2 pb-1">
-           <button className="hidden text-slate-400 transition hover:text-slate-200 sm:block" title="Upgrade for GIFs">
+           <button disabled className="hidden cursor-not-allowed text-slate-500 opacity-50 sm:block" title="GIFs need backend support" aria-disabled="true">
              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 11h3v2a2 2 0 0 1-2 2H7v-4Z"/><path d="M14 7h1"/><path d="M14 11h1"/><path d="M14 15h1"/><path d="M10 7v10"/><path d="M14 7v8"/></svg>
            </button>
-           <button className="hidden text-slate-400 transition hover:text-slate-200 sm:block" title="Stickers">
+           <button disabled className="hidden cursor-not-allowed text-slate-500 opacity-50 sm:block" title="Stickers need backend support" aria-disabled="true">
              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2V4"/><path d="M4 8v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/><path d="M4 12h16"/><path d="m15 15 3 3 3-3"/></svg>
            </button>
           <button

@@ -6,8 +6,13 @@ import { API_BASE } from '../config/api'
 export function useWebSocket(roomId, onMessage) {
   const stompClient = useRef(null)
   const subscriptionRef = useRef(null)
+  const onMessageRef = useRef(onMessage)
 
   const [connected, setConnected] = useState(false)
+
+  useEffect(() => {
+    onMessageRef.current = onMessage
+  }, [onMessage])
 
   useEffect(() => {
     if (!roomId) return
@@ -48,8 +53,8 @@ export function useWebSocket(roomId, onMessage) {
             try {
               const body = JSON.parse(message.body)
 
-              if (onMessage) {
-                onMessage(body)
+              if (onMessageRef.current) {
+                onMessageRef.current(body)
               }
             } catch (err) {
               console.error('Message parse error:', err)

@@ -1,5 +1,6 @@
 import { displayName, fmtTime, getGrad, initials, messageKey } from './chatUtils'
 import { motion } from 'framer-motion'
+import { renderMessageContent } from '../../utils/messageFormatting'
 
 const QUICK_REACTIONS = ['👍', '❤️', '😂', '🎉']
 
@@ -143,22 +144,8 @@ export function MessageCluster({
           )}
         </div>
         {msgs.map((msg, i) => {
-          const isFirst = i === 0
-          const isLast = i === msgs.length - 1
           const mk = messageKey(msg, i)
           const rmap = reactions[mk] || {}
-          const br = own
-            ? isFirst
-              ? 'rounded-2xl rounded-br-md'
-              : isLast
-                ? 'rounded-2xl rounded-tr-md'
-                : 'rounded-2xl rounded-r-md'
-            : isFirst
-              ? 'rounded-2xl rounded-bl-md'
-              : isLast
-                ? 'rounded-2xl rounded-tl-md'
-                : 'rounded-2xl rounded-l-md'
-
           return (
             <div key={mk} className="relative max-w-full">
               <div
@@ -166,7 +153,7 @@ export function MessageCluster({
                   msg._optimistic ? 'opacity-50' : 'text-slate-100'
                 }`}
               >
-                <p className="whitespace-pre-wrap break-words">{msg.content}</p>
+                <div>{renderMessageContent(msg.content)}</div>
                 <div className="absolute -top-1 left-0 flex flex-wrap items-center gap-2 text-[10px] font-bold text-slate-500">
                   {msg.edited && <span className="italic">(edited)</span>}
                 </div>
@@ -179,8 +166,11 @@ export function MessageCluster({
                     <button
                       key={em}
                       type="button"
-                      className="rounded-full px-1.5 py-0.5 text-sm hover:bg-white/10"
-                      onClick={() => onToggleReaction(mk, em)}
+                      disabled
+                      title="Message reactions need backend support"
+                      onClick={() => onToggleReaction?.(mk, em)}
+                      aria-disabled="true"
+                      className="cursor-not-allowed rounded-full px-1.5 py-0.5 text-sm opacity-45"
                     >
                       {em}
                     </button>
