@@ -20,7 +20,6 @@ import CommandPalette from './CommandPalette'
 
 import {
   CreateRoomModal,
-  LeaveRoomModal,
   ProfileModal,
   RoomSettingsModal,
   SearchModal,
@@ -39,7 +38,6 @@ export default function ChatPage() {
 
   const {
     rooms,
-    setRooms,
     loading: roomsLoading,
     createRoom,
   } = useChatRooms(token)
@@ -54,14 +52,12 @@ export default function ChatPage() {
   const [mobileSidebar, setMobileSidebar] = useState(false)
   const [showColdBanner, setShowColdBanner] = useState(false)
   const [coldElapsed, setColdElapsed] = useState(0)
-  const [replyTo, setReplyTo] = useState(null)
   const [sending, setSending] = useState(false)
 
   const [modalCreate, setModalCreate] = useState(false)
   const [modalProfile, setModalProfile] = useState(false)
   const [modalSearch, setModalSearch] = useState(false)
   const [modalRoom, setModalRoom] = useState(false)
-  const [modalLeave, setModalLeave] = useState(false)
 
   const [newRoomName, setNewRoomName] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -411,7 +407,6 @@ export default function ChatPage() {
     ])
 
     setInputText('')
-    setReplyTo(null)
     setSending(true)
 
     try {
@@ -423,7 +418,6 @@ export default function ChatPage() {
           type: 'CHAT',
           senderUsername: username,
           roomId: String(activeRoom.id),
-          replyToId: replyTo?.id || null,
         }),
       })
 
@@ -446,13 +440,8 @@ export default function ChatPage() {
     connected,
     activeRoom,
     username,
-    replyTo,
     toast,
   ])
-
-  const onToggleReaction = useCallback(() => {
-    toast('Message reactions need backend support first', 'default')
-  }, [toast])
 
   const handleLogout = () => {
     logout()
@@ -555,7 +544,6 @@ export default function ChatPage() {
         setModalProfile(false)
         setModalSearch(false)
         setModalRoom(false)
-        setModalLeave(false)
       }
     }
 
@@ -580,29 +568,8 @@ export default function ChatPage() {
     }
   }
 
-  const leaveLocal = () => {
-    const id = activeRoom?.id
-
-    setModalLeave(false)
-    setModalRoom(false)
-
-    setRooms((prev) => {
-      const next = prev.filter((r) => r.id !== id)
-
-      const first = next[0] ?? null
-
-      queueMicrotask(() =>
-        setSelectedRoomId(first ? first.id : null),
-      )
-
-      return next
-    })
-
-    toast('Removed channel locally', 'default')
-  }
-
   return (
-    <div className="flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden bg-[#1e1f22] font-sans text-slate-200">
+    <div className="flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden bg-[#050916] font-sans text-slate-200">
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <ServerSidebar />
 
@@ -627,7 +594,7 @@ export default function ChatPage() {
           memberCount={memberCount}
         />
 
-        <section className="relative flex min-w-0 flex-1 flex-col border-l border-white/[0.04] bg-[#313338] md:border-l-0">
+        <section className="relative flex min-w-0 flex-1 flex-col border-l border-white/[0.06] bg-[#0b1020] md:border-l-0">
           {showColdBanner && (
             <ColdStartBanner
               elapsed={coldElapsed}
@@ -656,6 +623,7 @@ export default function ChatPage() {
             onOpenRoomSettings={() =>
               setModalRoom(true)
             }
+            onOpenSearch={() => setModalSearch(true)}
             showMembers={showMembers}
             onToggleMembers={() => setShowMembers(!showMembers)}
             mobileNav={
@@ -688,9 +656,6 @@ export default function ChatPage() {
             username={username}
             currentUserAvatarUrl={avatarUrl}
             typingUsers={typingUsers}
-            reactions={{}}
-            onToggleReaction={onToggleReaction}
-            onReply={setReplyTo}
             welcomeRoomName={activeRoom?.name}
             hasRoom={!!activeRoom}
           />
@@ -705,8 +670,6 @@ export default function ChatPage() {
             disabled={!activeRoom || !connected}
             sending={sending}
             roomName={activeRoom?.name}
-            replyTo={replyTo}
-            onClearReply={() => setReplyTo(null)}
           />
         </section>
 
@@ -752,17 +715,6 @@ export default function ChatPage() {
         open={modalRoom}
         roomName={activeRoom?.name || ''}
         onClose={() => setModalRoom(false)}
-        onLeave={() => {
-          setModalRoom(false)
-          setModalLeave(true)
-        }}
-      />
-
-      <LeaveRoomModal
-        open={modalLeave}
-        roomName={activeRoom?.name || ''}
-        onClose={() => setModalLeave(false)}
-        onConfirm={leaveLocal}
       />
 
       {commandOpen && (

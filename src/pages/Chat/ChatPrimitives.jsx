@@ -2,8 +2,6 @@ import { displayName, fmtTime, getGrad, initials, messageKey } from './chatUtils
 import { motion } from 'framer-motion'
 import { renderMessageContent } from '../../utils/messageFormatting'
 
-const QUICK_REACTIONS = ['👍', '❤️', '😂', '🎉']
-
 export function Avatar({ name, avatarUrl, size = 34, radius = 999, className = '' }) {
   if (avatarUrl) {
     return (
@@ -112,12 +110,14 @@ export function MessageCluster({
   msgs,
   own,
   avatarUrl,
-  reactions,
-  onToggleReaction,
-  onReply,
 }) {
   const first = msgs[0]
   const showHoverTime = true
+
+  const copyMessage = async (content) => {
+    if (!content || !navigator.clipboard) return
+    await navigator.clipboard.writeText(content)
+  }
 
   return (
     <motion.div
@@ -125,7 +125,7 @@ export function MessageCluster({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-      className={`group/msg flex gap-4 py-1 transition-all duration-100 hover:bg-black/[0.05] px-4`}
+      className="group/msg flex gap-4 px-4 py-1 transition-all duration-100 hover:bg-white/[0.035]"
     >
       <div className="w-10 shrink-0 pt-1">
         <Avatar name={first.senderUsername} avatarUrl={avatarUrl} size={40} radius={999} />
@@ -136,7 +136,7 @@ export function MessageCluster({
         <div
           className={`mb-0.5 flex items-baseline gap-2 text-[12px] font-bold`}
         >
-          <span className={`text-[16px] ${own ? 'text-blue-400 hover:underline cursor-pointer' : 'text-white hover:underline cursor-pointer'}`}>
+          <span className={`text-[16px] ${own ? 'text-blue-200' : 'text-white'}`}>
             {displayName(first.senderUsername)}
           </span>
           {showHoverTime && (
@@ -145,7 +145,6 @@ export function MessageCluster({
         </div>
         {msgs.map((msg, i) => {
           const mk = messageKey(msg, i)
-          const rmap = reactions[mk] || {}
           return (
             <div key={mk} className="relative max-w-full">
               <div
@@ -162,49 +161,15 @@ export function MessageCluster({
                 className={`pointer-events-none absolute -top-4 right-0 flex gap-1 opacity-0 transition-all duration-100 group-hover/msg:pointer-events-auto group-hover/msg:opacity-100`}
               >
                 <div className="flex rounded border border-black/20 bg-[#2b2d31] shadow-xl">
-                  {QUICK_REACTIONS.map((em) => (
-                    <button
-                      key={em}
-                      type="button"
-                      disabled
-                      title="Message reactions need backend support"
-                      onClick={() => onToggleReaction?.(mk, em)}
-                      aria-disabled="true"
-                      className="cursor-not-allowed rounded-full px-1.5 py-0.5 text-sm opacity-45"
-                    >
-                      {em}
-                    </button>
-                  ))}
                   <button
                     type="button"
                     className="rounded-full px-2 text-[11px] text-slate-400 hover:bg-white/10 hover:text-slate-200"
-                    onClick={() =>
-                      onReply({
-                        id: mk,
-                        sender: displayName(msg.senderUsername),
-                        excerpt: msg.content?.slice(0, 120),
-                      })
-                    }
+                    onClick={() => copyMessage(msg.content)}
                   >
-                    Reply
+                    Copy
                   </button>
                 </div>
               </div>
-              {Object.keys(rmap).length > 0 && (
-                <div className={`mt-1 flex flex-wrap gap-1 ${own ? 'justify-end' : 'justify-start'}`}>
-                  {Object.entries(rmap).map(([em, n]) => (
-                    <button
-                      key={em}
-                      type="button"
-                      onClick={() => onToggleReaction(mk, em)}
-                      className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[12px] text-slate-200 hover:bg-white/10"
-                    >
-                      <span>{em}</span>
-                      <span className="text-[10px] text-slate-400">{n}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           )
         })}

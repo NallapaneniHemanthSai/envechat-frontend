@@ -52,9 +52,6 @@ export default function ChatMessageList({
   messages,
   username,
   typingUsers,
-  reactions,
-  onToggleReaction,
-  onReply,
   welcomeRoomName,
   hasRoom,
   onScrollState,
@@ -179,9 +176,6 @@ export default function ChatMessageList({
                 msgs={row.msgs}
                 own={row.sender === username}
                 avatarUrl={row.sender === username ? currentUserAvatarUrl : null}
-                reactions={reactions}
-                onToggleReaction={onToggleReaction}
-                onReply={onReply}
               />
             )
           })}

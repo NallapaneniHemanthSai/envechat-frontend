@@ -50,50 +50,57 @@ export default function ChatSidebar({
     setPinned(next)
   }
 
+  const statusText = connected
+    ? 'Realtime online'
+    : wsPhase === 'connecting'
+      ? 'Connecting...'
+      : 'Realtime offline'
+
   const shell = (
     <>
-      <div className="flex h-12 items-center justify-between px-4 shadow-sm transition hover:bg-white/[0.05] cursor-pointer group/header border-b border-black/20">
+      <div className="flex h-16 items-center justify-between border-b border-white/[0.08] px-4">
         <div className="min-w-0">
-          <h2 className="truncate font-bold text-[15px] text-white">EnveChat</h2>
+          <h2 className="truncate text-[15px] font-black tracking-tight text-white">EnveChat</h2>
           <p className="mt-0.5 truncate text-[11px] text-slate-500">
-            {connected ? 'Realtime online' : wsPhase === 'connecting' ? 'Connecting…' : 'Realtime offline'}
+            {statusText}
             {memberCount ? ` · ${memberCount} members` : ''}
           </p>
         </div>
         <button
           type="button"
           onClick={onOpenSearch}
-          className="rounded p-1.5 text-slate-400 transition hover:bg-white/10 hover:text-slate-100"
+          className="rounded-lg border border-white/[0.08] p-2 text-slate-400 transition hover:bg-white/[0.06] hover:text-slate-100"
           title="Search messages"
         >
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
         </button>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="px-3 pt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
-          Pinned
-        </div>
-        <div className="custom-scroll flex-1 space-y-0.5 overflow-y-auto px-2 py-2">
-          {sortedRooms.pinnedRooms.map((room) => (
-            <RoomRow
-              key={room.id}
-              room={room}
-              active={activeRoom?.id === room.id}
-              onSelect={() => {
-                onSelectRoom(room)
-                onCloseMobile?.()
-              }}
-              onPin={() => togglePin(room.id)}
-              pinned
-            />
-          ))}
-          {sortedRooms.pinnedRooms.length === 0 && (
-            <p className="px-2 py-1 text-[11px] text-slate-600">Star a channel to pin it here.</p>
+        <div className="custom-scroll flex-1 space-y-1 overflow-y-auto px-3 py-3">
+          {sortedRooms.pinnedRooms.length > 0 && (
+            <>
+              <SectionLabel>Pinned</SectionLabel>
+              {sortedRooms.pinnedRooms.map((room) => (
+                <RoomRow
+                  key={room.id}
+                  room={room}
+                  active={activeRoom?.id === room.id}
+                  onSelect={() => {
+                    onSelectRoom(room)
+                    onCloseMobile?.()
+                  }}
+                  onPin={() => togglePin(room.id)}
+                  pinned
+                />
+              ))}
+            </>
           )}
-          <div className="px-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
-            Text channels
-          </div>
+
+          <SectionLabel>Channels</SectionLabel>
           {sortedRooms.rest.map((room) => (
             <RoomRow
               key={room.id}
@@ -107,54 +114,55 @@ export default function ChatSidebar({
               pinned={pinned.includes(String(room.id))}
             />
           ))}
+
           {rooms.length === 0 && (
-            <p className="px-2 py-3 text-center text-xs text-slate-600">No channels yet</p>
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.035] px-3 py-4 text-center">
+              <p className="text-sm font-bold text-slate-300">No channels yet</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">Create a channel to start a backend-backed room.</p>
+            </div>
           )}
         </div>
       </div>
 
-      <div className="px-2 pb-2 pt-2">
+      <div className="border-t border-white/[0.08] p-3">
         <button
           type="button"
           onClick={onNewChannel}
-          className="flex w-full items-center justify-between rounded px-2 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-500 transition hover:bg-white/[0.05] hover:text-slate-300"
+          className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-400 px-3 py-2.5 text-sm font-black text-[#06101f] transition hover:bg-blue-300"
         >
-          <span>Text Channels</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
+          New channel
         </button>
-      </div>
 
-      <div className="flex items-center gap-2 bg-[#232428] px-2 py-1.5">
-        <button
-          type="button"
-          onClick={onOpenProfile}
-          className="flex flex-1 items-center gap-2 rounded px-1 py-1 transition hover:bg-white/[0.08]"
-        >
-          <div className="relative">
-            <Avatar name={username} avatarUrl={avatarUrl} size={32} radius={999} />
-            <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-[3px] border-[#232428] bg-status-online" />
-          </div>
-          <div className="min-w-0 flex-1 text-left">
-            <div className="truncate text-[13px] font-bold text-slate-100">{dn(username)}</div>
-            <div className="truncate text-[11px] text-slate-400">{connected ? 'Online' : 'Offline'}</div>
-          </div>
-        </button>
-        <div className="flex items-center">
-          <button className="rounded p-1.5 text-slate-400 transition hover:bg-white/[0.08] hover:text-slate-100" title="Mute">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-          </button>
-          <button className="rounded p-1.5 text-slate-400 transition hover:bg-white/[0.08] hover:text-slate-100" title="Deafen">
-             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
-          </button>
-          <button 
-            onClick={onLogout}
-            className="rounded p-1.5 text-slate-400 transition hover:bg-white/[0.08] hover:text-slate-100" 
-            title="User Settings"
+        <div className="flex items-center gap-2 rounded-xl bg-white/[0.04] p-2">
+          <button
+            type="button"
+            onClick={onOpenProfile}
+            className="flex min-w-0 flex-1 items-center gap-2 rounded-lg px-1 py-1 text-left transition hover:bg-white/[0.08]"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <div className="relative">
+              <Avatar name={username} avatarUrl={avatarUrl} size={32} radius={999} />
+              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-[3px] border-[#111827] bg-status-online" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[13px] font-bold text-slate-100">{dn(username)}</div>
+              <div className="truncate text-[11px] text-slate-400">{connected ? 'Online' : 'Offline'}</div>
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={onLogout}
+            className="rounded-lg p-2 text-slate-400 transition hover:bg-white/[0.08] hover:text-slate-100"
+            title="Log out"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <path d="m16 17 5-5-5-5" />
+              <path d="M21 12H9" />
+            </svg>
           </button>
         </div>
       </div>
@@ -163,7 +171,7 @@ export default function ChatSidebar({
 
   return (
     <>
-      <aside className="relative hidden h-full w-[260px] shrink-0 flex-col border-r border-white/[0.06] bg-[#07111f]/95 backdrop-blur md:flex">
+      <aside className="relative hidden h-full w-[280px] shrink-0 flex-col border-r border-white/[0.08] bg-[#080d1a]/96 backdrop-blur-xl md:flex">
         {shell}
       </aside>
 
@@ -180,7 +188,7 @@ export default function ChatSidebar({
           aria-label="Close menu"
         />
         <aside
-          className={`absolute left-0 top-0 flex h-full w-[min(88vw,280px)] max-w-full flex-col border-r border-white/[0.08] bg-[#07111f] shadow-2xl transition-transform duration-300 ease-out ${
+          className={`absolute left-0 top-0 flex h-full w-[min(88vw,280px)] max-w-full flex-col border-r border-white/[0.08] bg-[#080d1a] shadow-2xl transition-transform duration-300 ease-out ${
             mobileOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
@@ -191,28 +199,35 @@ export default function ChatSidebar({
   )
 }
 
+function SectionLabel({ children }) {
+  return (
+    <div className="px-1 pb-1 pt-2 text-[10px] font-black uppercase tracking-[0.16em] text-blue-200/45">
+      {children}
+    </div>
+  )
+}
+
 function RoomRow({ room, active, onSelect, onPin, pinned }) {
   return (
     <div className="group/row relative">
       <button
         type="button"
         onClick={onSelect}
-        className={`flex w-full items-center gap-1.5 rounded px-2 py-1.5 text-left text-[15px] font-medium transition ${
+        className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-[14px] font-bold transition ${
           active
-            ? 'bg-white/[0.08] text-slate-100'
+            ? 'bg-blue-300/12 text-slate-100'
             : 'text-slate-400 hover:bg-white/[0.04] hover:text-slate-200'
         }`}
       >
-        <span className="shrink-0 text-slate-500">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+        <span className="shrink-0 text-blue-200/45">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="4" y1="9" x2="20" y2="9" />
+            <line x1="4" y1="15" x2="20" y2="15" />
+            <line x1="10" y1="3" x2="8" y2="21" />
+            <line x1="16" y1="3" x2="14" y2="21" />
+          </svg>
         </span>
         <span className="min-w-0 flex-1 truncate">{room.name}</span>
-        {active && (
-           <div className="flex items-center gap-1">
-              <svg className="text-slate-400 opacity-0 group-hover/row:opacity-100" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-              <svg className="text-slate-400 opacity-0 group-hover/row:opacity-100" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-           </div>
-        )}
       </button>
       <button
         type="button"
@@ -221,7 +236,7 @@ function RoomRow({ room, active, onSelect, onPin, pinned }) {
           e.stopPropagation()
           onPin()
         }}
-        className="absolute right-1 top-1/2 -translate-y-1/2 rounded p-1 text-slate-600 opacity-0 transition hover:bg-white/10 hover:text-slate-200 group-hover/row:opacity-100"
+        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-600 opacity-0 transition hover:bg-white/10 hover:text-blue-100 group-hover/row:opacity-100"
       >
         {pinned ? '★' : '☆'}
       </button>

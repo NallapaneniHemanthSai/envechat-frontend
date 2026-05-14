@@ -65,7 +65,7 @@ export function CreateRoomModal({ open, name, onChangeName, onCreate, onClose })
 export function ProfileModal({ open, username, avatarUrl, onSetAvatar, onClose }) {
   if (!open) return null
   return (
-    <ModalFrame title="Profile" subtitle="Frontend preview — wire to your API later" onClose={onClose}>
+    <ModalFrame title="Profile" subtitle="Local appearance preference" onClose={onClose}>
       <p className="text-sm text-slate-300">
         Signed in as <span className="font-medium text-white">{username}</span>
       </p>
@@ -119,47 +119,20 @@ export function SearchModal({ open, query, onChangeQuery, results, onClose }) {
   )
 }
 
-export function RoomSettingsModal({ open, roomName, onClose, onLeave }) {
+export function RoomSettingsModal({ open, roomName, onClose }) {
   if (!open) return null
   return (
-    <ModalFrame title={`#${roomName}`} subtitle="Channel settings (UI foundation)" onClose={onClose}>
+    <ModalFrame title={`#${roomName}`} subtitle="Channel details" onClose={onClose}>
       <p className="text-sm text-slate-400">
-        Notification overrides, slow mode, and permissions can plug into your backend here.
+        This channel is synced from your backend room list. Management actions will appear here once matching backend endpoints exist.
       </p>
       <button
         type="button"
-        onClick={onLeave}
-        className="mt-6 w-full rounded-lg border border-red-500/30 bg-red-500/10 py-2 text-sm font-medium text-red-200 hover:bg-red-500/20"
+        onClick={onClose}
+        className="mt-6 w-full rounded-lg border border-white/10 py-2 text-sm text-slate-300 hover:bg-white/5"
       >
-        Leave channel…
+        Close
       </button>
-    </ModalFrame>
-  )
-}
-
-export function LeaveRoomModal({ open, roomName, onConfirm, onClose }) {
-  if (!open) return null
-  return (
-    <ModalFrame title="Leave channel?" subtitle="This is a UI-only action in this build" onClose={onClose}>
-      <p className="text-sm text-slate-400">
-        You will stop seeing <span className="font-medium text-slate-200">#{roomName}</span> in this session until you rejoin from the server.
-      </p>
-      <div className="mt-6 flex justify-end gap-2">
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-300 hover:bg-white/5"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={onConfirm}
-          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500"
-        >
-          Leave (local)
-        </button>
-      </div>
     </ModalFrame>
   )
 }

@@ -38,11 +38,11 @@
   --brand-hover: #4752c4;
 
   /* ── Status Colors ── */
-  --status-online: #23a559;
-  --status-idle: #f0b232;
-  --status-dnd: #f23f43;
-  --status-offline: #80848e;
-  --status-streaming: #593695;
+  --status-online: #60a5fa;
+  --status-idle: #93c5fd;
+  --status-dnd: #bfdbfe;
+  --status-offline: #64748b;
+  --status-streaming: #3b82f6;
 
   /* ── Semantic Colors ── */
   --info-positive: #23a559;
@@ -89,7 +89,7 @@ body {
   color: var(--text-normal);
   font-size: 14px;
   line-height: 1.5; /* Slightly more breathable */
-  letter-spacing: -0.011em; /* Modern sans-serif feel */
+  letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

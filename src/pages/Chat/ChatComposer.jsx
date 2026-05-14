@@ -33,9 +33,9 @@ export default function ChatComposer({
   const over = remaining < 0
 
   return (
-    <div className="shrink-0 border-t border-white/[0.06] bg-[#050c14]/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md md:px-5 md:pb-4">
+    <div className="shrink-0 border-t border-white/[0.08] bg-[#080d1a]/95 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl md:px-5 md:pb-4">
       {replyTo && (
-        <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-blue-500/20 bg-blue-500/5 px-4 py-2.5 text-[12px] font-medium text-slate-300">
+        <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-blue-300/20 bg-blue-300/5 px-4 py-2.5 text-[12px] font-medium text-slate-300">
           <div className="min-w-0">
             <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">
               Replying to {replyTo.sender}
@@ -53,21 +53,10 @@ export default function ChatComposer({
         </div>
       )}
       <div
-        className={`flex items-end gap-2 rounded-2xl border bg-[#0a1624]/80 px-3 py-2 shadow-sm transition-all duration-200 ${
-          focused ? 'border-blue-500/40 ring-2 ring-blue-500/10 bg-[#0a1624]' : 'border-white/10'
+        className={`flex items-end gap-2 rounded-xl border bg-white/[0.04] px-3 py-2 shadow-sm transition-all duration-200 ${
+          focused ? 'border-blue-300/40 bg-white/[0.06] ring-2 ring-blue-300/10' : 'border-white/10'
         } ${disabled ? 'opacity-50' : ''}`}
       >
-        <div className="flex shrink-0 items-center gap-1 pb-1">
-          <button
-            type="button"
-            disabled
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-600 text-white opacity-40"
-            title="File uploads need backend support"
-            aria-disabled="true"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </button>
-        </div>
         <textarea
           ref={taRef}
           rows={1}
@@ -81,16 +70,10 @@ export default function ChatComposer({
           className="custom-scroll max-h-40 min-h-[44px] w-full resize-none bg-transparent py-2.5 text-[14px] font-medium leading-relaxed text-white placeholder:text-slate-600 focus:outline-none disabled:cursor-not-allowed"
         />
         <div className="flex shrink-0 items-center gap-2 pb-1">
-           <button disabled className="hidden cursor-not-allowed text-slate-500 opacity-50 sm:block" title="GIFs need backend support" aria-disabled="true">
-             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 11h3v2a2 2 0 0 1-2 2H7v-4Z"/><path d="M14 7h1"/><path d="M14 11h1"/><path d="M14 15h1"/><path d="M10 7v10"/><path d="M14 7v8"/></svg>
-           </button>
-           <button disabled className="hidden cursor-not-allowed text-slate-500 opacity-50 sm:block" title="Stickers need backend support" aria-disabled="true">
-             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2V4"/><path d="M4 8v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/><path d="M4 12h16"/><path d="m15 15 3 3 3-3"/></svg>
-           </button>
           <button
             type="button"
             disabled={disabled}
-            className="text-slate-400 transition hover:text-slate-200 disabled:opacity-40"
+            className="rounded-lg p-2 text-slate-400 transition hover:bg-white/10 hover:text-slate-200 disabled:opacity-40"
             title="Emoji"
             onClick={() => onChange((value || '') + '🙂')}
           >
@@ -100,6 +83,14 @@ export default function ChatComposer({
               <line x1="9" y1="9" x2="9.01" y2="9" />
               <line x1="15" y1="9" x2="15.01" y2="9" />
             </svg>
+          </button>
+          <button
+            type="button"
+            disabled={disabled || sending || !value?.trim() || over}
+            onClick={onSend}
+            className="inline-flex h-9 items-center gap-2 rounded-lg bg-blue-400 px-3 text-sm font-bold text-[#06101f] transition hover:bg-blue-300 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-slate-500"
+          >
+            Send
           </button>
         </div>
       </div>
