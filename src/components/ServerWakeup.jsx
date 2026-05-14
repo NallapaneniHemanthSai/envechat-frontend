@@ -53,72 +53,256 @@ export default function ServerWakeup({ onReady }) {
   const progress = Math.min((seconds / 120) * 100, 95);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[#F8F7F3] font-sans relative overflow-hidden">
-      {/* Decorative background shapes */}
-      <div className="absolute top-[-10%] left-[-5%] w-64 h-64 bg-[#BEF355] rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse"></div>
-      <div className="absolute bottom-[-10%] right-[-5%] w-80 h-80 bg-[#121212] rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse" style={{ animationDelay: '2s' }}></div>
+    <>
+      <div style={styles.page}>
+        {/* Animated background orbs */}
+        <div style={{ ...styles.orb, ...styles.orb1 }} />
+        <div style={{ ...styles.orb, ...styles.orb2 }} />
+        <div style={{ ...styles.orb, ...styles.orb3 }} />
 
-      <div className="w-full max-w-md relative z-10 animate-slide-up text-center">
-        {/* Logo Mark */}
-        <div className="flex justify-center mb-8 animate-pop-in">
-          <div className="w-20 h-20 bg-[#BEF355] border-[3px] border-[#1C1C1C] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-2xl flex items-center justify-center transform -rotate-3 hover:rotate-0 transition-transform cursor-default">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1C1C1C" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="animate-pulse">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-          </div>
-        </div>
-
-        <div className="bg-white border-[3px] border-[#1C1C1C] rounded-[24px] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8 sm:p-10">
-          <h1 className="font-heading text-4xl font-black text-[#1C1C1C] mb-2 tracking-tight">EnveChat</h1>
-          <p className="text-[#6B7280] font-bold mb-8 min-h-[24px]">
-            {statusText}{'.'.repeat(dotCount)}
-          </p>
-
-          <div className="bg-[#F8F7F3] border-2 border-[#1C1C1C] rounded-xl p-5 mb-6">
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex flex-col items-center">
-                <span className="text-[#1C1C1C] font-black text-2xl font-mono">
-                  {mins}:{String(secs).padStart(2, '0')}
-                </span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Elapsed</span>
-              </div>
-              <div className="w-[2px] h-10 bg-[#1C1C1C] opacity-20 border-dashed"></div>
-              <div className="flex flex-col items-center">
-                <span className="text-[#1C1C1C] font-black text-2xl font-mono">
-                  ~2:00
-                </span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Estimated</span>
+        <div style={styles.container}>
+          {/* Logo */}
+          <div style={styles.logoWrap}>
+            <div style={styles.logoRing}>
+              <div style={styles.logoInner}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </div>
             </div>
+          </div>
 
-            <div className="h-4 bg-white border-2 border-[#1C1C1C] rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-[#BEF355] border-r-2 border-[#1C1C1C] transition-all duration-1000"
-                style={{ width: `${progress}%` }}
-              />
+          <h1 style={styles.title}>EnveChat</h1>
+          <p style={styles.subtitle}>{statusText}{'.'.repeat(dotCount)}</p>
+
+          {/* Progress bar */}
+          <div style={styles.progressTrack}>
+            <div style={{ ...styles.progressFill, width: `${progress}%` }} />
+            <div style={{ ...styles.progressGlow, left: `${progress}%` }} />
+          </div>
+
+          {/* Stats row */}
+          <div style={styles.statsRow}>
+            <div style={styles.statItem}>
+              <span style={styles.statValue}>{mins}:{String(secs).padStart(2, '0')}</span>
+              <span style={styles.statLabel}>Elapsed</span>
+            </div>
+            <div style={styles.statDivider} />
+            <div style={styles.statItem}>
+              <span style={styles.statValue}>~2:00</span>
+              <span style={styles.statLabel}>Estimated</span>
             </div>
           </div>
 
           {/* Info pill */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-[#1C1C1C] rounded-lg text-xs font-bold text-[#1C1C1C] shadow-[2px_2px_0px_0px_#1C1C1C] mb-6 text-left">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="shrink-0 text-[#BEF355]">
+          <div style={styles.infoPill}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5865f2" strokeWidth="2" style={{ flexShrink: 0 }}>
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
             </svg>
-            <span>Free-tier server cold start — happens after inactivity.</span>
+            <span>Free-tier server cold start — this only happens after inactivity</span>
           </div>
 
           {/* Loading dots */}
-          <div className="flex justify-center gap-2">
+          <div style={styles.dotsRow}>
             {[0, 1, 2].map((i) => (
-              <span 
-                key={i} 
-                className="w-3 h-3 rounded-full border-2 border-[#1C1C1C] bg-[#BEF355] inline-block animate-bounce"
-                style={{ animationDelay: `${i * 0.15}s` }} 
-              />
+              <span key={i} style={{ ...styles.loadDot, animationDelay: `${i * 0.15}s` }} />
             ))}
           </div>
         </div>
       </div>
-    </div>
+
+      <style>{`
+        @keyframes orbFloat {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -40px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+        @keyframes ringPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(88, 101, 242, 0.4); }
+          50% { box-shadow: 0 0 0 12px rgba(88, 101, 242, 0); }
+        }
+        @keyframes progressShimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        @keyframes loadBounce {
+          0%, 80%, 100% { transform: scale(0.5); opacity: 0.3; }
+          40% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+    </>
   );
 }
+
+const styles = {
+  page: {
+    height: '100vh',
+    background: '#1e1f22',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+    fontFamily: "'Inter', sans-serif",
+  },
+  orb: {
+    position: 'absolute',
+    borderRadius: '50%',
+    filter: 'blur(80px)',
+    pointerEvents: 'none',
+    animation: 'orbFloat 8s ease-in-out infinite',
+  },
+  orb1: {
+    width: 400, height: 400,
+    background: 'rgba(88, 101, 242, 0.12)',
+    top: '-10%', left: '-5%',
+    animationDelay: '0s',
+  },
+  orb2: {
+    width: 300, height: 300,
+    background: 'rgba(35, 165, 89, 0.08)',
+    bottom: '-10%', right: '-5%',
+    animationDelay: '-3s',
+  },
+  orb3: {
+    width: 250, height: 250,
+    background: 'rgba(240, 178, 50, 0.06)',
+    top: '50%', left: '60%',
+    animationDelay: '-5s',
+  },
+  container: {
+    position: 'relative',
+    zIndex: 1,
+    textAlign: 'center',
+    padding: '48px 40px',
+    maxWidth: 420,
+    width: '100%',
+    animation: 'fadeInUp 0.6s ease',
+  },
+  logoWrap: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginBottom: 28,
+  },
+  logoRing: {
+    width: 80,
+    height: 80,
+    borderRadius: '50%',
+    background: 'rgba(88, 101, 242, 0.1)',
+    border: '2px solid rgba(88, 101, 242, 0.2)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    animation: 'ringPulse 2s ease-in-out infinite',
+  },
+  logoInner: {
+    width: 56,
+    height: 56,
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #5865f2, #7289da)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 8px 24px rgba(88, 101, 242, 0.3)',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 800,
+    color: '#f2f3f5',
+    letterSpacing: '-0.03em',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#949ba4',
+    marginBottom: 32,
+    minHeight: 20,
+  },
+  progressTrack: {
+    position: 'relative',
+    height: 4,
+    background: '#404249',
+    borderRadius: 99,
+    overflow: 'hidden',
+    marginBottom: 24,
+  },
+  progressFill: {
+    height: '100%',
+    background: 'linear-gradient(90deg, #5865f2, #7289da, #5865f2)',
+    backgroundSize: '200% 100%',
+    borderRadius: 99,
+    transition: 'width 1s ease',
+    animation: 'progressShimmer 2s linear infinite',
+  },
+  progressGlow: {
+    position: 'absolute',
+    top: -4,
+    width: 12,
+    height: 12,
+    borderRadius: '50%',
+    background: '#5865f2',
+    filter: 'blur(6px)',
+    transition: 'left 1s ease',
+    transform: 'translateX(-50%)',
+  },
+  statsRow: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 24,
+    marginBottom: 24,
+  },
+  statItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 4,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: 700,
+    color: '#f2f3f5',
+    fontVariantNumeric: 'tabular-nums',
+  },
+  statLabel: {
+    fontSize: 11,
+    fontWeight: 500,
+    color: '#949ba4',
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+  },
+  statDivider: {
+    width: 1,
+    height: 32,
+    background: '#404249',
+  },
+  infoPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 8,
+    padding: '8px 16px',
+    background: 'rgba(88, 101, 242, 0.08)',
+    border: '1px solid rgba(88, 101, 242, 0.15)',
+    borderRadius: 99,
+    fontSize: 12,
+    color: '#949ba4',
+    marginBottom: 28,
+  },
+  dotsRow: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  loadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: '50%',
+    background: '#5865f2',
+    display: 'inline-block',
+    animation: 'loadBounce 1.4s ease-in-out infinite',
+  },
+};

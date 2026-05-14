@@ -116,44 +116,42 @@ export default function ChatMessageList({
   }, [welcomeRoomName])
 
   return (
-    <div className="relative min-h-0 flex-1 bg-white">
+    <div className="relative min-h-0 flex-1">
       <div
         ref={scrollerRef}
-        className="custom-scroll h-full overflow-y-auto overscroll-contain px-4 pb-4 pt-4 md:px-6"
+        className="custom-scroll h-full overflow-y-auto overscroll-contain px-3 pb-2 pt-3 md:px-5"
       >
         {!hasRoom && (
-          <div className="flex h-full flex-col items-center justify-center gap-4 py-16 text-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-[3px] border-[#1C1C1C] bg-[#F8F7F3] shadow-[4px_4px_0px_0px_#1C1C1C] transform -rotate-6">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-[#1C1C1C]" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+          <div className="flex h-full flex-col items-center justify-center gap-3 py-16 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-slate-600" stroke="currentColor" strokeWidth="1.5">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
             </div>
-            <p className="font-heading text-2xl font-black text-[#1C1C1C]">No channel selected</p>
-            <p className="max-w-xs text-sm font-bold text-[#6B7280]">Pick a channel from the sidebar or create one.</p>
+            <p className="text-base font-semibold text-slate-300">No channel selected</p>
+            <p className="max-w-xs text-sm text-slate-500">Pick a channel from the sidebar or create one.</p>
           </div>
         )}
 
         {hasRoom && messages.length === 0 && (
-          <div className="border-b-[3px] border-dashed border-[#1C1C1C] pb-8 mb-6 mt-4">
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl border-[3px] border-[#1C1C1C] bg-[#BEF355] shadow-[4px_4px_0px_0px_#1C1C1C]">
-              <p className="font-mono text-4xl font-black text-[#1C1C1C]">#</p>
-            </div>
-            <h2 className="mt-5 font-heading text-3xl font-black tracking-tight text-[#1C1C1C]">
+          <div className="border-b border-white/[0.06] pb-6">
+            <p className="font-mono text-5xl font-extrabold text-[#0f2744]">#</p>
+            <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-100">
               Welcome to #{welcomeRoomName}
             </h2>
-            <p className="mt-3 max-w-lg text-[15px] font-medium leading-relaxed text-[#6B7280]">
-              This is the start of <span className="font-black text-[#1C1C1C]">#{welcomeRoomName}</span>.
+            <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-500">
+              This is the start of <span className="font-medium text-slate-400">#{welcomeRoomName}</span>.
               Send a message to kick things off.
             </p>
-            <div className="mt-6 flex items-center gap-4 rounded-2xl border-[3px] border-[#1C1C1C] bg-[#F8F7F3] p-5 shadow-[4px_4px_0px_0px_#1C1C1C]">
-              <Avatar name={username} avatarUrl={currentUserAvatarUrl} size={48} radius={12} />
-              <div className="text-left text-[13px] font-bold text-[#6B7280]">
-                <span className="font-black text-[#1C1C1C]">Pro Tip:</span> Press{' '}
-                <kbd className="rounded-md border-2 border-[#1C1C1C] bg-white px-2 py-0.5 font-mono text-[11px] font-black text-[#1C1C1C] shadow-[2px_2px_0px_0px_#1C1C1C]">
+            <div className="mt-6 flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.03] p-4">
+              <Avatar name={username} avatarUrl={currentUserAvatarUrl} size={40} radius={10} />
+              <div className="text-left text-sm text-slate-400">
+                <span className="font-medium text-slate-200">Tip:</span> Press{' '}
+                <kbd className="rounded border border-white/15 bg-black/30 px-1.5 py-0.5 font-mono text-[11px] text-slate-300">
                   Enter
                 </kbd>{' '}
                 to send,{' '}
-                <kbd className="rounded-md border-2 border-[#1C1C1C] bg-white px-2 py-0.5 font-mono text-[11px] font-black text-[#1C1C1C] shadow-[2px_2px_0px_0px_#1C1C1C]">
+                <kbd className="rounded border border-white/15 bg-black/30 px-1.5 py-0.5 font-mono text-[11px] text-slate-300">
                   Shift+Enter
                 </kbd>{' '}
                 for a new line.
@@ -171,8 +169,8 @@ export default function ChatMessageList({
               const { msg } = row
               const text =
                 msg.type === 'JOIN'
-                  ? `${displayName(msg.senderUsername)} joined the channel`
-                  : `${displayName(msg.senderUsername)} left the channel`
+                  ? `${displayName(msg.senderUsername)} joined`
+                  : `${displayName(msg.senderUsername)} left`
               return <SystemRow key={row.key}>{text}</SystemRow>
             }
             return (
@@ -190,18 +188,18 @@ export default function ChatMessageList({
 
         {showUnreadLine && !atBottom && <UnreadSeparator />}
         <TypingRow names={typingUsers} />
-        <div ref={endRef} className="h-4 shrink-0" />
+        <div ref={endRef} className="h-2 shrink-0" />
       </div>
 
       {hasRoom && !atBottom && (
         <button
           type="button"
           onClick={() => scrollToBottom()}
-          className="absolute bottom-6 right-6 z-20 flex h-12 w-12 items-center justify-center rounded-full border-[3px] border-[#1C1C1C] bg-[#BEF355] text-[#1C1C1C] shadow-[4px_4px_0px_0px_#1C1C1C] transition-all hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_#1C1C1C] active:translate-y-0 active:shadow-none"
+          className="absolute bottom-4 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#0b1524]/95 text-slate-200 shadow-lg backdrop-blur transition hover:border-blue-500/40 hover:text-white"
           title="Jump to latest"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 5v14M19 12l-7 7-7-7" />
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 5v14M19 12l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
       )}
