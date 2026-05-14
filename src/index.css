@@ -13,7 +13,7 @@
 }
 
 :root {
-  /* ── Modern Deep Theme Palette ── */
+  /* ── Strict Discord Theme Palette ── */
   --bg-primary: #313338;
   --bg-secondary: #2b2d31;
   --bg-tertiary: #1e1f22;
@@ -21,6 +21,7 @@
   --bg-modifier-active: rgba(79, 84, 92, 0.24);
   --bg-modifier-selected: rgba(79, 84, 92, 0.32);
   --bg-floating: #111214;
+  --bg-overlay: rgba(0, 0, 0, 0.85);
 
   /* ── Text Colors ── */
   --text-normal: #dbdee1;
@@ -106,7 +107,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--bg-tertiary);
+  background: #1a1b1e;
   border-radius: 4px;
   border: 2px solid transparent;
   background-clip: padding-box;
@@ -114,7 +115,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #1a1b1e;
+  background: #111214;
   border: 2px solid transparent;
   background-clip: padding-box;
 }

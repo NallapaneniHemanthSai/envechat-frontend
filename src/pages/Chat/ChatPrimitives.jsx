@@ -124,22 +124,22 @@ export function MessageCluster({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-      className={`group/msg flex gap-2.5 py-0.5 ${own ? 'flex-row-reverse' : 'flex-row'}`}
+      className={`group/msg flex gap-4 py-1 transition-all duration-100 hover:bg-black/[0.05] px-4`}
     >
       <div className="w-10 shrink-0 pt-1">
-        <Avatar name={first.senderUsername} avatarUrl={avatarUrl} size={36} radius={999} />
+        <Avatar name={first.senderUsername} avatarUrl={avatarUrl} size={40} radius={999} />
       </div>
       <div
-        className={`flex min-w-0 max-w-[min(92vw,640px)] flex-col gap-1 ${own ? 'items-end' : 'items-start'}`}
+        className={`flex min-w-0 flex-1 flex-col`}
       >
         <div
-          className={`mb-1 flex items-center gap-2 text-[12px] font-bold ${own ? 'flex-row-reverse' : 'flex-row'}`}
+          className={`mb-0.5 flex items-baseline gap-2 text-[12px] font-bold`}
         >
-          <span className={`${own ? 'text-blue-400' : 'text-slate-200'}`}>
-            {own ? 'You' : displayName(first.senderUsername)}
+          <span className={`text-[16px] ${own ? 'text-blue-400 hover:underline cursor-pointer' : 'text-white hover:underline cursor-pointer'}`}>
+            {displayName(first.senderUsername)}
           </span>
           {showHoverTime && (
-            <span className="font-medium text-slate-500 opacity-0 transition group-hover/msg:opacity-100">{fmtTime(first.sentAt)}</span>
+            <span className="text-[12px] font-medium text-slate-500">{fmtTime(first.sentAt)}</span>
           )}
         </div>
         {msgs.map((msg, i) => {
@@ -162,22 +162,19 @@ export function MessageCluster({
           return (
             <div key={mk} className="relative max-w-full">
               <div
-                className={`relative border px-4 py-2.5 text-[14px] font-medium leading-relaxed shadow-sm transition ${br} ${
-                  own
-                    ? 'border-blue-500/20 bg-blue-600/10 text-white'
-                    : 'border-white/[0.08] bg-white/[0.03] text-slate-100'
-                } ${msg._optimistic ? 'opacity-70 ring-1 ring-blue-400/20' : ''}`}
+                className={`relative py-0.5 text-[16px] font-normal leading-normal transition-all duration-100 group-hover/msg:bg-white/[0.02] -ml-2 px-2 rounded ${
+                  msg._optimistic ? 'opacity-50' : 'text-slate-100'
+                }`}
               >
                 <p className="whitespace-pre-wrap break-words">{msg.content}</p>
-                <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[11px] font-semibold text-slate-500">
-                  {msg._optimistic && <span className="text-blue-400">Sending…</span>}
+                <div className="absolute -top-1 left-0 flex flex-wrap items-center gap-2 text-[10px] font-bold text-slate-500">
                   {msg.edited && <span className="italic">(edited)</span>}
                 </div>
               </div>
               <div
-                className={`pointer-events-none absolute bottom-1 flex gap-1 opacity-0 transition group-hover/msg:pointer-events-auto group-hover/msg:opacity-100 ${own ? 'left-1' : 'right-1'}`}
+                className={`pointer-events-none absolute -top-4 right-0 flex gap-1 opacity-0 transition-all duration-100 group-hover/msg:pointer-events-auto group-hover/msg:opacity-100`}
               >
-                <div className="flex rounded-full border border-white/10 bg-[#0a1624]/95 p-0.5 shadow-lg backdrop-blur">
+                <div className="flex rounded border border-black/20 bg-[#2b2d31] shadow-xl">
                   {QUICK_REACTIONS.map((em) => (
                     <button
                       key={em}

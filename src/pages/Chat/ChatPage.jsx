@@ -12,6 +12,8 @@ import ChatComposer from './ChatComposer'
 import ChatHeader from './ChatHeader'
 import ChatMessageList from './ChatMessageList'
 import ChatSidebar from './ChatSidebar'
+import ServerSidebar from './ServerSidebar'
+import MemberSidebar from './MemberSidebar'
 import CommandPalette from './CommandPalette'
 
 import {
@@ -63,6 +65,7 @@ export default function ChatPage() {
   const [newRoomName, setNewRoomName] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [commandOpen, setCommandOpen] = useState(false)
+  const [showMembers, setShowMembers] = useState(true)
 
   const stompRef = useRef(null)
   const subRef = useRef(null)
@@ -566,8 +569,10 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden bg-[#040d1a] font-sans text-slate-200">
+    <div className="flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden bg-[#1e1f22] font-sans text-slate-200">
       <div className="flex min-h-0 flex-1 overflow-hidden">
+        <ServerSidebar />
+
         <ChatSidebar
           rooms={rooms}
           activeRoom={activeRoom}
@@ -589,7 +594,7 @@ export default function ChatPage() {
           memberCount={memberCount}
         />
 
-        <section className="relative flex min-w-0 flex-1 flex-col border-l border-white/[0.04] bg-gradient-to-b from-[#050a14] to-[#040d1a] md:border-l-0">
+        <section className="relative flex min-w-0 flex-1 flex-col border-l border-white/[0.04] bg-[#313338] md:border-l-0">
           {showColdBanner && (
             <ColdStartBanner
               elapsed={coldElapsed}
@@ -618,6 +623,8 @@ export default function ChatPage() {
             onOpenRoomSettings={() =>
               setModalRoom(true)
             }
+            showMembers={showMembers}
+            onToggleMembers={() => setShowMembers(!showMembers)}
             mobileNav={
               <button
                 type="button"
@@ -669,6 +676,12 @@ export default function ChatPage() {
             onClearReply={() => setReplyTo(null)}
           />
         </section>
+
+        {showMembers && (
+          <MemberSidebar 
+            currentUsername={username}
+          />
+        )}
       </div>
 
       <CreateRoomModal
