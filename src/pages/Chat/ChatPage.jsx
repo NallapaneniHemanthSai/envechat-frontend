@@ -566,7 +566,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden bg-[#040d1a] font-sans text-slate-200">
+    <div className="flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden bg-[#F8F7F3] font-sans text-[#1C1C1C]">
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <ChatSidebar
           rooms={rooms}
@@ -589,7 +589,7 @@ export default function ChatPage() {
           memberCount={memberCount}
         />
 
-        <section className="relative flex min-w-0 flex-1 flex-col border-l border-white/[0.04] bg-gradient-to-b from-[#050a14] to-[#040d1a] md:border-l-0">
+        <section className="relative flex min-w-0 flex-1 flex-col border-l-[3px] border-[#1C1C1C] bg-[#F8F7F3] md:border-l-[3px]">
           {showColdBanner && (
             <ColdStartBanner
               elapsed={coldElapsed}
